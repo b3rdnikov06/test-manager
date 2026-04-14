@@ -38,7 +38,7 @@ INSERT INTO results (attempt_id, score, max_score)
 VALUES
 (1, 3, 3);
 
-SELECT q.text, a.text, ua.text_answer
+SELECT q.text AS questions, a.text AS answer, ua.text_answer AS answer_text
 FROM user_answers ua
 JOIN questions q ON ua.question_id = q.id
 LEFT JOIN answers a ON ua.answer_id = a.id

@@ -43,10 +43,12 @@ CREATE TABLE questions (
 CREATE TABLE answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     question_id INT NOT NULL,
-    text TEXT NOT NULL,
+    text VARCHAR(255) NOT NULL,
     is_correct BOOLEAN DEFAULT FALSE,
 
-    FOREIGN KEY (question_id) REFERENCES questions(id)
+    FOREIGN KEY (question_id) REFERENCES questions(id),
+    
+    UNIQUE (question_id, text)
 );
 
 CREATE TABLE attempts (
