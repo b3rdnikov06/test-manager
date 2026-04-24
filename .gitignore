@@ -1,2 +1,5 @@
 Документация для вуза
 .DS_Store
+backend/node_modules
+backend/db.js
+/backend/db.js
