@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/checkRole');
 
 // POST /questions
-router.post('/', (req, res) => {
+router.post('/', auth, checkRole('teacher'), (req, res) => {
     const { test_id, text, type, order_index } = req.body;
 
     const query = `
@@ -21,7 +23,7 @@ router.post('/', (req, res) => {
 });
 
 // POST /questions/:id/answers
-router.post('/:id/answers', (req, res) => {
+router.post('/:id/answers', auth, checkRole('teacher'), (req, res) => {
     const question_id = req.params.id;
     const { answers } = req.body;
 
@@ -73,7 +75,7 @@ router.post('/:id/answers', (req, res) => {
 });
 
 // GET /questions/:test_id - - - - - - только для ПРЕПОДОВ И АДМИНОВ
-router.get('/:test_id', (req, res) => {
+router.get('/:test_id', auth, checkRole('teacher'), (req, res) => {
     const test_id = req.params.test_id;
 
     const query = `

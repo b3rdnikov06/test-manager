@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/checkRole');
 
 // GET /tests
-router.get('/', (req, res) => {
+router.get('/', auth, (req, res) => {
     db.query('SELECT * FROM tests', (err, results) => {
         if (err) {
             return res.status(500).json({ error: err });
@@ -14,7 +16,7 @@ router.get('/', (req, res) => {
 });
 
 // POST /tests
-router.post('/', (req, res) => {
+router.post('/', auth, checkRole('teacher'), (req, res) => {
     const { title, description, author_id, time_limit } = req.body;
 
     const query = `
@@ -32,7 +34,7 @@ router.post('/', (req, res) => {
 });
 
 // GET /tests/:id/full
-router.get('/:id/full', (req, res) => {
+router.get('/:id/full', auth, (req, res) => {
     const test_id = req.params.id;
 
     const query = `
