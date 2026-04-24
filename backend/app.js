@@ -9,10 +9,12 @@ app.use(express.json());
 const testsRoutes = require('./routes/tests');
 const questionsRoutes = require('./routes/questions');
 const attemptsRoutes = require('./routes/attempts');
+const authRoutes = require('./routes/auth');
 
 app.use('/tests', testsRoutes);
 app.use('/questions', questionsRoutes);
 app.use('/attempts', attemptsRoutes);
+app.use('/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is working');
