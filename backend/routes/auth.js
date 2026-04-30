@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 
 // POST /auth/register
 router.post('/register', async (req, res) => {
@@ -61,7 +62,11 @@ router.post('/login', (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, role: user.role },
+            { 
+                id: user.id, 
+                role: user.role,
+                version: user.token_version
+            },
             'secret_key',
             { expiresIn: '1h' }
         );
@@ -69,22 +74,21 @@ router.post('/login', (req, res) => {
     });
 });
 
-module.exports = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+// POST /auth/logout
+router.post('/logout', auth, (req, res) => {
+    const user_id = req.user.id;
 
-    if (!authHeader) {
-        return res.status(401).json({ error: 'No token' });
-    }
+    const query = `
+        UPDATE users 
+        SET token_version = token_version + 1
+        WHERE id = ?
+    `;
 
-    const token = authHeader.split(' ')[1];
+    db.query(query, [user_id], (err) => {
+        if (err) return res.status(500).json({ error: err });
 
-    try {
-        const decoded = jwt.verify(token, 'secret_key');
-        req.user = decoded;
-        next();
-    } catch {
-        return res.status(401).json({ error: 'Invalid token' });
-    }
-};
+        res.json({ message: 'Logged out' });
+    });
+});
 
 module.exports = router;
