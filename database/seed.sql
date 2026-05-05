@@ -6,7 +6,7 @@ VALUES
 
 INSERT INTO tests (title, description, author_id, time_limit, attempts_limit, is_published)
 VALUES
-('Java Basics', 'Test for Java knowledge', 3, 30, 1, TRUE);
+('Java Basics', 'Test for Java knowledge', 3, 5, 1, TRUE);
 
 INSERT INTO questions (test_id, text, type, order_index)
 VALUES

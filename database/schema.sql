@@ -20,7 +20,7 @@ CREATE TABLE tests (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     author_id INT NOT NULL,
-    time_limit INT NOT NULL CHECK (time_limit BETWEEN 10 AND 60),
+    time_limit INT NOT NULL CHECK (time_limit BETWEEN 5 AND 30),
     attempts_limit INT NOT NULL DEFAULT 1 CHECK (attempts_limit > 0),
     is_published BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
