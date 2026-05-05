@@ -8,7 +8,11 @@ const checkRole = require('../middleware/checkRole');
 router.get('/', auth, (req, res) => {
     db.query('SELECT * FROM tests', (err, results) => {
         if (err) {
-            return res.status(500).json({ error: err });
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         res.json(results);
@@ -26,7 +30,11 @@ router.post('/', auth, checkRole('teacher'), (req, res) => {
 
     db.query(query, [title, description, author_id, time_limit], (err, result) => {
         if (err) {
-            return res.status(500).json({ error: err });
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         res.json({ message: 'Test created', id: result.insertId });
@@ -52,7 +60,11 @@ router.get('/:id/full', auth, (req, res) => {
 
     db.query(query, [test_id], (err, results) => {
         if (err) {
-            return res.status(500).json({ error: err });
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         const questionsMap = {};

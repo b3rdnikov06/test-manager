@@ -22,7 +22,11 @@ router.post('/start', auth, (req, res) => {
             });
         }
         if (err) {
-            return res.status(500).json({ error: err });
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         const query = `
@@ -78,7 +82,13 @@ router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, re
     `;
 
     db.query(questionQuery, [question_id, test_id], (err, qResult) => {
-        if (err) return res.status(500).json({ error: err });
+        if (err) {
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
+        }
 
         if (qResult.length === 0) {
             return res.status(400).json({ error: 'Invalid question id' });
@@ -103,7 +113,13 @@ router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, re
             `;
 
             return db.query(checkSingleQuery, [attempt_id, question_id], (err, result) => {
-                if (err) return res.status(500).json({ error: err });
+                if (err) {
+                    console.error(err);
+        
+                    return res.status(500).json({
+                        error: 'Internal server error'
+                    });
+                }
 
                 if (result.length > 0) {
                     return res.status(400).json({
@@ -126,7 +142,13 @@ router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, re
                 `;
 
                 return db.query(answerQuery, [answer_id, question_id], (err, aResult) => {
-                    if (err) return res.status(500).json({ error: err });
+                    if (err) {
+                        console.error(err);
+            
+                        return res.status(500).json({
+                            error: 'Internal server error'
+                        });
+                    }
 
                     if (aResult.length === 0) {
                         return res.status(400).json({ error: 'Invalid answer id' });
@@ -154,7 +176,11 @@ router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, re
                 }
 
                 if (err) {
-                    return res.status(500).json({ error: err });
+                    console.error(err);
+        
+                    return res.status(500).json({
+                        error: 'Internal server error'
+                    });
                 }
 
                 res.json({ message: 'Answer saved' });
@@ -164,122 +190,28 @@ router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, re
 });
 
 // POST /attempts/:id/submit
-router.post('/:id/submit', auth, checkAttempt, checkAttemptNotFinished, (req, res) => {
-    if (req.attempt.finished_at) {
-        return res.status(400).json({
-            error: 'Test already completed'
-        });
-    }
-
+router.post('/:id/submit', auth, checkAttempt, (req, res) => {
     const attempt_id = req.params.id;
-    const test_id = req.attempt.test_id;
 
-    const query = `
-        SELECT 
-            q.id AS question_id,
-            q.type,
-            a.id AS answer_id,
-            a.text AS answer_text,
-            a.is_correct,
-            ua.answer_id AS selected
-        FROM questions q
-        LEFT JOIN answers a ON q.id = a.question_id
-        LEFT JOIN user_answers ua 
-            ON ua.answer_id = a.id 
-            AND ua.attempt_id = ?
-        WHERE q.test_id = ?
-    `;
+    const { finishAttempt } = require('../services/attemptService');
 
-    const textQuery = `
-        SELECT question_id, text_answer
-        FROM user_answers
-        WHERE attempt_id = ? AND text_answer IS NOT NULL
-    `;
+    finishAttempt(attempt_id, req.attempt.test_id, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
 
-    db.query(query, [attempt_id, test_id], (err, results) => {
-        if (err) return res.status(500).json({ error: err });
-
-        db.query(textQuery, [attempt_id], (err, textResults) => {
-            if (err) return res.status(500).json({ error: err });
-
-            const questionsMap = {};
-
-            results.forEach(row => {
-                if (!questionsMap[row.question_id]) {
-                    questionsMap[row.question_id] = {
-                        type: row.type,
-                        answers: [],
-                        text_answer: null,
-                        correct_text: null
-                    };
-                }
-
-                if (row.type === 'text' && row.is_correct) {
-                    questionsMap[row.question_id].correct_text = row.answer_text;
-                }
-
-                if (row.answer_id) {
-                    questionsMap[row.question_id].answers.push({
-                        is_correct: row.is_correct,
-                        selected: !!row.selected
-                    });
-                }
+        if (!result) {
+            return res.status(400).json({
+                error: 'Test already completed'
             });
+        }
 
-            textResults.forEach(row => {
-                if (questionsMap[row.question_id]) {
-                    questionsMap[row.question_id].text_answer = row.text_answer;
-                }
-            });
-
-            let score = 0;
-            const total = Object.keys(questionsMap).length;
-
-            Object.values(questionsMap).forEach(question => {
-                let isCorrect = true;
-
-                if (question.type !== 'text') {
-                    question.answers.forEach(answer => {
-                        if (answer.is_correct && !answer.selected) isCorrect = false;
-                        if (!answer.is_correct && answer.selected) isCorrect = false;
-                    });
-                }
-
-                if (question.type === 'text') {
-                    const user = (question.text_answer || '').trim().toLowerCase();
-                    const correct = (question.correct_text || '').trim().toLowerCase();
-
-                    if (user !== correct) isCorrect = false;
-                }
-
-                if (isCorrect) score++;
-            });
-
-            const finishQuery = `
-                UPDATE attempts 
-                SET finished_at = NOW()
-                WHERE id = ?
-            `;
-
-            db.query(finishQuery, [attempt_id], (err) => {
-                if (err) return res.status(500).json({ error: err });
-
-                const resultQuery = `
-                    INSERT INTO results (attempt_id, score, max_score)
-                    VALUES (?, ?, ?)
-                `;
-
-                db.query(resultQuery, [attempt_id, score, total], (err) => {
-                    if (err) return res.status(500).json({ error: err });
-
-                    res.json({
-                        message: 'Test completed',
-                        score,
-                        total,
-                        percentage: Math.round((score / total) * 100)
-                    });
-                });
-            });
+        res.json({
+            message: 'Test completed',
+            score: result.score,
+            total: result.total,
+            percentage: Math.round((result.score / result.total) * 100)
         });
     });
 });

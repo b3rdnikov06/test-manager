@@ -36,57 +36,82 @@ router.get('/:id', auth, checkAttempt, (req, res) => {
     `;
 
     db.query(query, [attempt_id, test_id], (err, results) => {
-        if (err) return res.status(500).json({ error: err });
-
-        const questionsMap = {};
-
-        results.forEach(row => {
-            if (!questionsMap[row.question_id]) {
-                questionsMap[row.question_id] = {
-                    question_id: row.question_id,
-                    question_text: row.question_text,
-                    type: row.type,
-                    answers: [],
-                    text_answer: row.text_answer || null
-                };
-            }
-
-            if (row.answer_id) {
-                questionsMap[row.question_id].answers.push({
-                    answer_id: row.answer_id,
-                    text: row.answer_text,
-                    is_correct: row.is_correct,
-                    selected: row.selected !== null
-                });
-            }
-        });
-
-        const questions = Object.values(questionsMap);
-
-        const resultQuery = `
-            SELECT score, max_score
-            FROM results
-            WHERE attempt_id = ?
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    
+        const textQuery = `
+            SELECT question_id, text_answer
+            FROM user_answers
+            WHERE attempt_id = ? AND text_answer IS NOT NULL
         `;
-
-        db.query(resultQuery, [attempt_id], (err, resultData) => {
-            if (err) return res.status(500).json({ error: err });
-
-            if (resultData.length === 0) {
-                return res.status(404).json({ error: 'Result not found' });
+    
+        db.query(textQuery, [attempt_id], (err, textResults) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Internal server error' });
             }
-
-            const { score, max_score } = resultData[0];
-
-            res.json({
-                attempt_id,
-                test_id,
-                score,
-                total: max_score,
-                percentage: max_score
-                    ? Math.round((score / max_score) * 100)
-                    : 0,
-                questions
+    
+            const questionsMap = {};
+    
+            results.forEach(row => {
+                if (!questionsMap[row.question_id]) {
+                    questionsMap[row.question_id] = {
+                        question_id: row.question_id,
+                        question_text: row.question_text,
+                        type: row.type,
+                        answers: [],
+                        text_answer: null
+                    };
+                }
+    
+                if (row.answer_id) {
+                    questionsMap[row.question_id].answers.push({
+                        answer_id: row.answer_id,
+                        text: row.answer_text,
+                        is_correct: row.is_correct,
+                        selected: row.selected !== null
+                    });
+                }
+            });
+    
+            textResults.forEach(row => {
+                if (questionsMap[row.question_id]) {
+                    questionsMap[row.question_id].text_answer = row.text_answer;
+                }
+            });
+    
+            const questions = Object.values(questionsMap);
+    
+            const resultQuery = `
+                SELECT score, max_score
+                FROM results
+                WHERE attempt_id = ?
+            `;
+    
+            db.query(resultQuery, [attempt_id], (err, resultData) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({ error: 'Internal server error' });
+                }
+    
+                if (resultData.length === 0) {
+                    return res.status(404).json({ error: 'Result not found' });
+                }
+    
+                const { score, max_score } = resultData[0];
+    
+                res.json({
+                    attempt_id,
+                    test_id,
+                    score,
+                    total: max_score,
+                    percentage: max_score
+                        ? Math.round((score / max_score) * 100)
+                        : 0,
+                    questions
+                });
             });
         });
     });

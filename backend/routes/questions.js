@@ -15,7 +15,11 @@ router.post('/', auth, checkRole('teacher'), (req, res) => {
 
     db.query(query, [test_id, text, type, order_index], (err, result) => {
         if (err) {
-            return res.status(500).json({error: err});
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         res.json({ message: 'Question added', id: result.insertID });
@@ -35,7 +39,11 @@ router.post('/:id/answers', auth, checkRole('teacher'), (req, res) => {
 
     db.query(questionQuery, [question_id], (err, questionResult) => {
         if (err) {
-            return res.status(500).json({ error: err });
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         const questionType = questionResult[0].type;
@@ -57,13 +65,18 @@ router.post('/:id/answers', auth, checkRole('teacher'), (req, res) => {
 
         db.query(insertQuery, [values], (err, result) => {
             if (err) {
+                
+                console.error(err);
+
                 if (err.code === 'ER_DUP_ENTRY') {
                     return res.status(400).json({
                         error: 'Duplicate answer'
                     });
                 }
 
-                return res.status(500).json({ error: err });
+                return res.status(500).json({
+                    error: 'Internal server error'
+                });
             }
 
             res.json({
@@ -93,7 +106,11 @@ router.get('/:test_id', auth, checkRole('teacher'), (req, res) => {
     `;
     db.query(query, [test_id], (err, results) => {
         if (err) {
-            return res.status(500).json({ error: err });
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         const questionsMap = {};

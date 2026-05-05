@@ -30,10 +30,16 @@ router.post('/register', async (req, res) => {
 
     db.query (query, [email, hashedPassword, role ], (err, result) => {
         if (err) {
+
+            console.error(err);
+            
             if (err.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ error: 'Email already exists' });
             }
-            return res.status(500).json({ error: err });
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
         }
 
         res.json({ message: 'User created'});
@@ -47,7 +53,13 @@ router.post('/login', (req, res) => {
     const query = `SELECT * FROM users WHERE  email = ?`;
 
     db.query(query, [email], async (err, result) => {
-        if (err) return res.status(500).json({ error: err});
+        if (err) {
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
+        }
 
         const user = result[0];
 
@@ -85,7 +97,13 @@ router.post('/logout', auth, (req, res) => {
     `;
 
     db.query(query, [user_id], (err) => {
-        if (err) return res.status(500).json({ error: err });
+        if (err) {
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
+        }
 
         res.json({ message: 'Logged out' });
     });
