@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const auth = require('../middleware/auth');
 const checkAttempt = require('../middleware/checkAttempt');
+const checkAttemptNotFinished = require('../middleware/checkAttemptNotFinished');
 
 // POST /attempts/start
 router.post('/start', auth, (req, res) => {
@@ -43,7 +44,7 @@ router.post('/start', auth, (req, res) => {
 });
 
 // POST /attempts/:id/answer
-router.post('/:id/answer', auth, checkAttempt, (req, res) => {
+router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, res) => {
     const attempt_id = req.params.id;
     const { question_id, answer_id, text_answer } = req.body;
     const test_id = req.attempt.test_id;
@@ -163,125 +164,120 @@ router.post('/:id/answer', auth, checkAttempt, (req, res) => {
 });
 
 // POST /attempts/:id/submit
-router.post('/:id/submit', auth, checkAttempt, (req, res) => {
-    const attempt_id = req.params.id;
-    const user_id = req.user.id;
+router.post('/:id/submit', auth, checkAttempt, checkAttemptNotFinished, (req, res) => {
+    if (req.attempt.finished_at) {
+        return res.status(400).json({
+            error: 'Test already completed'
+        });
+    }
 
-    const checkQuery = `
-        SELECT * FROM attempts 
-        WHERE id = ? AND user_id = ?
+    const attempt_id = req.params.id;
+    const test_id = req.attempt.test_id;
+
+    const query = `
+        SELECT 
+            q.id AS question_id,
+            q.type,
+            a.id AS answer_id,
+            a.text AS answer_text,
+            a.is_correct,
+            ua.answer_id AS selected
+        FROM questions q
+        LEFT JOIN answers a ON q.id = a.question_id
+        LEFT JOIN user_answers ua 
+            ON ua.answer_id = a.id 
+            AND ua.attempt_id = ?
+        WHERE q.test_id = ?
     `;
 
-    db.query(checkQuery, [attempt_id, user_id], (err, checkResult) => {
+    const textQuery = `
+        SELECT question_id, text_answer
+        FROM user_answers
+        WHERE attempt_id = ? AND text_answer IS NOT NULL
+    `;
+
+    db.query(query, [attempt_id, test_id], (err, results) => {
         if (err) return res.status(500).json({ error: err });
 
-        if (checkResult.length === 0) {
-            return res.status(403).json({ error: 'Access denied' });
-        }
-
-        const query = `
-            SELECT 
-                q.id AS question_id,
-                q.type,
-                a.id AS answer_id,
-                a.text AS answer_text,
-                a.is_correct,
-                ua.answer_id AS selected
-            FROM questions q
-            LEFT JOIN answers a ON q.id = a.question_id
-            LEFT JOIN user_answers ua 
-                ON ua.answer_id = a.id 
-                AND ua.attempt_id = ?
-            WHERE q.test_id = (
-                SELECT test_id FROM attempts WHERE id = ?
-            )
-        `;
-
-        const textQuery = `
-            SELECT question_id, text_answer
-            FROM user_answers
-            WHERE attempt_id = ? AND text_answer IS NOT NULL
-        `;
-
-        db.query(query, [attempt_id, attempt_id], (err, results) => {
+        db.query(textQuery, [attempt_id], (err, textResults) => {
             if (err) return res.status(500).json({ error: err });
 
-            db.query(textQuery, [attempt_id], (err, textResults) => {
+            const questionsMap = {};
+
+            results.forEach(row => {
+                if (!questionsMap[row.question_id]) {
+                    questionsMap[row.question_id] = {
+                        type: row.type,
+                        answers: [],
+                        text_answer: null,
+                        correct_text: null
+                    };
+                }
+
+                if (row.type === 'text' && row.is_correct) {
+                    questionsMap[row.question_id].correct_text = row.answer_text;
+                }
+
+                if (row.answer_id) {
+                    questionsMap[row.question_id].answers.push({
+                        is_correct: row.is_correct,
+                        selected: !!row.selected
+                    });
+                }
+            });
+
+            textResults.forEach(row => {
+                if (questionsMap[row.question_id]) {
+                    questionsMap[row.question_id].text_answer = row.text_answer;
+                }
+            });
+
+            let score = 0;
+            const total = Object.keys(questionsMap).length;
+
+            Object.values(questionsMap).forEach(question => {
+                let isCorrect = true;
+
+                if (question.type !== 'text') {
+                    question.answers.forEach(answer => {
+                        if (answer.is_correct && !answer.selected) isCorrect = false;
+                        if (!answer.is_correct && answer.selected) isCorrect = false;
+                    });
+                }
+
+                if (question.type === 'text') {
+                    const user = (question.text_answer || '').trim().toLowerCase();
+                    const correct = (question.correct_text || '').trim().toLowerCase();
+
+                    if (user !== correct) isCorrect = false;
+                }
+
+                if (isCorrect) score++;
+            });
+
+            const finishQuery = `
+                UPDATE attempts 
+                SET finished_at = NOW()
+                WHERE id = ?
+            `;
+
+            db.query(finishQuery, [attempt_id], (err) => {
                 if (err) return res.status(500).json({ error: err });
-
-                const questionsMap = {};
-
-                results.forEach(row => {
-                    if (!questionsMap[row.question_id]) {
-                        questionsMap[row.question_id] = {
-                            type: row.type,
-                            answers: [],
-                            text_answer: null,
-                            correct_text: null
-                        };
-                    }
-
-                    if (row.type === 'text' && row.is_correct) {
-                        questionsMap[row.question_id].correct_text = row.answer_text;
-                    }
-
-                    if (row.answer_id) {
-                        questionsMap[row.question_id].answers.push({
-                            is_correct: row.is_correct,
-                            selected: !!row.selected
-                        });
-                    }
-                });
-
-                textResults.forEach(row => {
-                    if (questionsMap[row.question_id]) {
-                        questionsMap[row.question_id].text_answer = row.text_answer;
-                    }
-                });
-
-                let score = 0;
-                const total = Object.keys(questionsMap).length;
-
-                Object.values(questionsMap).forEach(question => {
-                    let isCorrect = true;
-
-                    if (question.type !== 'text') {
-                        question.answers.forEach(answer => {
-                            if (answer.is_correct && !answer.selected) isCorrect = false;
-                            if (!answer.is_correct && answer.selected) isCorrect = false;
-                        });
-                    }
-
-                    if (question.type === 'text') {
-                        const user = (question.text_answer || '').trim().toLowerCase();
-                        const correct = (question.correct_text || '').trim().toLowerCase();
-
-                        if (user !== correct) isCorrect = false;
-                    }
-
-                    if (isCorrect) score++;
-                });
-
-                const finishQuery = `
-                    UPDATE attempts 
-                    SET finished_at = NOW()
-                    WHERE id = ?
-                `;
-
-                db.query(finishQuery, [attempt_id]);
 
                 const resultQuery = `
                     INSERT INTO results (attempt_id, score, max_score)
                     VALUES (?, ?, ?)
                 `;
 
-                db.query(resultQuery, [attempt_id, score, total]);
+                db.query(resultQuery, [attempt_id, score, total], (err) => {
+                    if (err) return res.status(500).json({ error: err });
 
-                res.json({
-                    message: 'Test completed',
-                    score,
-                    total,
-                    percentage: Math.round((score / total) * 100)
+                    res.json({
+                        message: 'Test completed',
+                        score,
+                        total,
+                        percentage: Math.round((score / total) * 100)
+                    });
                 });
             });
         });
