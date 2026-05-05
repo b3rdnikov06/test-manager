@@ -10,11 +10,13 @@ const testsRoutes = require('./routes/tests');
 const questionsRoutes = require('./routes/questions');
 const attemptsRoutes = require('./routes/attempts');
 const authRoutes = require('./routes/auth');
+const resultsRoutes = require('./routes/results');
 
 app.use('/tests', testsRoutes);
 app.use('/questions', questionsRoutes);
 app.use('/attempts', attemptsRoutes);
 app.use('/auth', authRoutes);
+app.use('/results', resultsRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is working');
