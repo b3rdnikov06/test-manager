@@ -79,7 +79,7 @@ CREATE TABLE user_answers (
 
 CREATE TABLE results (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    attempt_id INT NOT NULL UNIQUE,
+    attempt_id INT NOT NULL,
     score INT NOT NULL,
     max_score INT NOT NULL,
 
