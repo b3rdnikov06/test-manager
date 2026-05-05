@@ -83,6 +83,8 @@ CREATE TABLE results (
     score INT NOT NULL,
     max_score INT NOT NULL,
 
-    FOREIGN KEY (attempt_id) REFERENCES attempts(id)
+    FOREIGN KEY (attempt_id) REFERENCES attempts(id),
+    
+    UNIQUE (attempt_id)
 );
 
