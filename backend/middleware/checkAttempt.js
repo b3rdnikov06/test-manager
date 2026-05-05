@@ -4,7 +4,13 @@ module.exports = (req, res, next) => {
     const attempt_id = req.params.id;
     const user_id = req.user.id;
 
-    const query = `SELECT * FROM attempts WHERE id = ?`;
+    const query = `SELECT 
+            a.*,
+            t.time_limit
+        FROM attempts a
+        JOIN tests t ON a.test_id = t.id
+        WHERE a.id = ?
+    `;
 
     db.query(query, [attempt_id], (err, result) => {
         if (err) return res.status(500).json({ error: err });
