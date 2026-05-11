@@ -5,22 +5,25 @@ const auth = require('../middleware/auth');
 const checkAttempt = require('../middleware/checkAttempt');
 const checkAttemptNotFinished = require('../middleware/checkAttemptNotFinished');
 
-// POST /attempts/start
-router.post('/start', auth, (req, res) => {
-    const user_id = req.user.id;
-    const { test_id } = req.body;
-    
-    const checkQuery = `
-    SELECT * FROM attempts 
-    WHERE user_id = ? AND test_id = ?
+// GET /attempts/:id
+router.get('/:id', auth, checkAttempt, checkAttemptNotFinished, (req, res) => {
+
+    const attempt_id = req.params.id;
+
+    const test_id = req.attempt.test_id;
+
+    const testQuery = `
+        SELECT
+            id,
+            title,
+            description,
+            time_limit
+        FROM tests
+        WHERE id = ?
     `;
 
-    db.query(checkQuery, [user_id, test_id], (err, result) => {
-        if (result.length > 0) {
-            return res.status(400).json({
-                error: 'You already started this test'
-            });
-        }
+    db.query(testQuery, [test_id], (err, testResult) => {
+
         if (err) {
             console.error(err);
 
@@ -29,19 +32,145 @@ router.post('/start', auth, (req, res) => {
             });
         }
 
-        const query = `
-        INSERT INTO attempts (user_id, test_id, started_at)
-        VALUES (?, ?, NOW())
+        if (testResult.length === 0) {
+            return res.status(404).json({
+                error: 'Test not found'
+            });
+        }
+
+        const test = testResult[0];
+
+        const questionsQuery = `
+            SELECT
+                q.id AS question_id,
+                q.text AS question_text,
+                q.type,
+                q.order_index,
+                a.id AS answer_id,
+                a.text AS answer_text
+            FROM questions q
+            LEFT JOIN answers a
+                ON q.id = a.question_id
+            WHERE q.test_id = ?
+            ORDER BY q.order_index
         `;
 
-        db.query(query, [user_id, test_id], (err, result) => {
-            if(err) {
-                return res.status(500).json({ error: err })
+        db.query(questionsQuery, [test_id], (err, results) => {
+
+            if (err) {
+                console.error(err);
+
+                return res.status(500).json({
+                    error: 'Internal server error'
+                });
             }
 
+            const questionsMap = {};
+
+            results.forEach(row => {
+
+                if (!questionsMap[row.question_id]) {
+
+                    questionsMap[row.question_id] = {
+                        id: row.question_id,
+                        text: row.question_text,
+                        type: row.type,
+                        order_index: row.order_index,
+                        answers: []
+                    };
+                }
+
+                if (row.type !== 'text' && row.answer_id) {
+
+                    questionsMap[row.question_id].answers.push({
+                        id: row.answer_id,
+                        text: row.answer_text
+                    });
+                }
+            });
+
+            const questions =
+                Object.values(questionsMap);
+
             res.json({
-                message: 'Attempt started',
-                attempt_id: result.insertId
+                attempt_id,
+                test: {
+                    id: test.id,
+                    title: test.title,
+                    description: test.description,
+                    time_limit: test.time_limit
+                },
+                questions
+            });
+        });
+    });
+});
+
+// POST /attempts/start
+router.post('/start', auth, (req, res) => {
+    const user_id = req.user.id;
+    const { test_id } = req.body;
+
+    const testQuery = `
+        SELECT id
+        FROM tests
+        WHERE id = ?
+        AND is_published = true
+    `;
+
+    db.query(testQuery, [test_id], (err, publResult) => {
+
+        if (err) {
+            console.error(err);
+
+            return res.status(500).json({
+                error: 'Internal server error'
+            });
+        }
+
+        if (publResult.length === 0) {
+            return res.status(404).json({
+                error: 'Test not found or not published'
+            });
+        }
+    
+        const checkQuery = `
+            SELECT id
+            FROM attempts
+            WHERE user_id = ?
+            AND test_id = ?
+        `;
+
+        db.query(checkQuery, [user_id, test_id], (err, result) => {
+
+            if (err) {
+                console.error(err);
+
+                return res.status(500).json({
+                    error: 'Internal server error'
+                });
+            }
+            
+            if (result.length > 0) {
+                return res.status(400).json({
+                    error: 'You already started this test'
+                });
+            }
+
+            const query = `
+            INSERT INTO attempts (user_id, test_id, started_at)
+            VALUES (?, ?, NOW())
+            `;
+
+            db.query(query, [user_id, test_id], (err, result) => {
+                if(err) {
+                    return res.status(500).json({ error: err })
+                }
+
+                res.json({
+                    message: 'Attempt started',
+                    attempt_id: result.insertId
+                });
             });
         });
     });
