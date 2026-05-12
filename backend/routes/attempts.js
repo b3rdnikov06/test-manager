@@ -183,7 +183,7 @@ router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, re
     const test_id = req.attempt.test_id;
 
     const safeAnswerId = answer_id ?? null;
-    const safeText = text_answer ?? null;
+    const safeText = text_answer?.trim() || null;
 
     if (!question_id) {
         return res.status(400).json({ error: 'question_id required' });
@@ -225,10 +225,55 @@ router.post('/:id/answer', auth, checkAttempt, checkAttemptNotFinished, (req, re
 
         const question = qResult[0];
 
+        if (question.type !== 'text' && text_answer) {
+            return res.status(400).json({
+                error: 'Text answer allowed only for text questions'
+            });
+        }
+
+        if (question.type === 'text' && answer_id) {
+            return res.status(400).json({
+                error: 'Text question cannot use answer_id'
+            });
+        }
+
         if (question.type === 'text') {
+
             if (!text_answer) {
-                return res.status(400).json({ error: 'Text answer required' });
+                return res.status(400).json({
+                    error: 'Text answer required'
+                });
             }
+        
+            const checkTextQuery = `
+                SELECT id
+                FROM user_answers
+                WHERE attempt_id = ?
+                AND question_id = ?
+            `;
+        
+            return db.query(
+                checkTextQuery,
+                [attempt_id, question_id],
+                (err, result) => {
+        
+                    if (err) {
+                        console.error(err);
+        
+                        return res.status(500).json({
+                            error: 'Internal server error'
+                        });
+                    }
+        
+                    if (result.length > 0) {
+                        return res.status(400).json({
+                            error: 'Text answer already submitted'
+                        });
+                    }
+        
+                    continueFlow();
+                }
+            );
         }
 
         if (question.type === 'single') {
