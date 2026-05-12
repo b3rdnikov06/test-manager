@@ -27,7 +27,8 @@ router.post('/:id/answers', auth, checkRole('teacher'), (req, res) => {
         SELECT
             q.id,
             q.type,
-            t.author_id
+            t.author_id,
+            t.is_published
         FROM questions q
         JOIN tests t ON q.test_id = t.id
         WHERE q.id = ?
@@ -54,6 +55,12 @@ router.post('/:id/answers', auth, checkRole('teacher'), (req, res) => {
         if (question.author_id !== teacher_id) {
             return res.status(403).json({
                 error: 'Access denied'
+            });
+        }
+
+        if (question.is_published) {
+            return res.status(400).json({
+                error: 'Cannot modify published test'
             });
         }
 
@@ -130,26 +137,26 @@ router.post('/:id/answers', auth, checkRole('teacher'), (req, res) => {
                 WHERE question_id = ?
                 AND text = ?
             `;
-        
+
             db.query(
                 duplicateAnswerQuery,
                 [question_id, text.trim()],
                 (err, duplicateResult) => {
-        
+
                     if (err) {
                         console.error(err);
-        
+
                         return res.status(500).json({
                             error: 'Internal server error'
                         });
                     }
-        
+
                     if (duplicateResult.length > 0) {
                         return res.status(400).json({
                             error: 'Answer already exists for this question'
                         });
                     }
-        
+
                     const insertQuery = `
                         INSERT INTO answers (
                             question_id,
@@ -158,20 +165,20 @@ router.post('/:id/answers', auth, checkRole('teacher'), (req, res) => {
                         )
                         VALUES (?, ?, ?)
                     `;
-        
+
                     db.query(
                         insertQuery,
                         [question_id, text.trim(), is_correct],
                         (err, result) => {
-        
+
                             if (err) {
                                 console.error(err);
-        
+
                                 return res.status(500).json({
                                     error: 'Internal server error'
                                 });
                             }
-        
+
                             res.status(201).json({
                                 message: 'Answer created',
                                 answer_id: result.insertId
@@ -234,18 +241,17 @@ router.patch('/:id', auth, checkRole('teacher'), (req, res) => {
             });
         }
 
-        const duplicateQuery = `
+        const activeAttemptQuery = `
             SELECT id
-            FROM questions
+            FROM attempts
             WHERE test_id = ?
-            AND text = ?
-            AND id != ?
+            AND finished_at IS NULL
         `;
 
         db.query(
-            duplicateQuery,
-            [question.test_id, text.trim(), question_id],
-            (err, duplicateResult) => {
+            activeAttemptQuery,
+            [question.test_id],
+            (err, attemptResult) => {
 
                 if (err) {
                     console.error(err);
@@ -255,22 +261,24 @@ router.patch('/:id', auth, checkRole('teacher'), (req, res) => {
                     });
                 }
 
-                if (duplicateResult.length > 0) {
+                if (attemptResult.length > 0) {
                     return res.status(400).json({
-                        error: 'Question already exists'
+                        error: 'Cannot modify question while test attempt is active'
                     });
                 }
 
-                const updateQuery = `
-                    UPDATE questions
-                    SET text = ?
-                    WHERE id = ?
+                const duplicateQuery = `
+                    SELECT id
+                    FROM questions
+                    WHERE test_id = ?
+                    AND text = ?
+                    AND id != ?
                 `;
 
                 db.query(
-                    updateQuery,
-                    [text.trim(), question_id],
-                    (err) => {
+                    duplicateQuery,
+                    [question.test_id, text.trim(), question_id],
+                    (err, duplicateResult) => {
 
                         if (err) {
                             console.error(err);
@@ -280,13 +288,45 @@ router.patch('/:id', auth, checkRole('teacher'), (req, res) => {
                             });
                         }
 
-                        res.json({
-                            message: 'Question updated'
-                        });
+                        if (duplicateResult.length > 0) {
+                            return res.status(400).json({
+                                error: 'Question already exists'
+                            });
+                        }
+
+                        updateQuestion();
                     }
                 );
             }
         );
+
+        function updateQuestion() {
+
+            const updateQuery = `
+                UPDATE questions
+                SET text = ?
+                WHERE id = ?
+            `;
+
+            db.query(
+                updateQuery,
+                [text.trim(), question_id],
+                (err) => {
+
+                    if (err) {
+                        console.error(err);
+
+                        return res.status(500).json({
+                            error: 'Internal server error'
+                        });
+                    }
+
+                    res.json({
+                        message: 'Question updated'
+                    });
+                }
+            );
+        }
     });
 });
 
