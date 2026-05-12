@@ -106,7 +106,7 @@ router.post('/:id/questions', auth, checkRole('teacher'), (req, res) => {
 
     const test_id = req.params.id;
     const author_id = req.user.id;
-    const { text, type, order_index } = req.body;
+    const { text, type } = req.body;
 
     if (!text || text.trim() === '') {
         return res.status(400).json({
@@ -122,20 +122,10 @@ router.post('/:id/questions', auth, checkRole('teacher'), (req, res) => {
         });
     }
 
-    if (order_index === undefined) {
-        return res.status(400).json({
-            error: 'order_index is required'
-        });
-    }
-
-    if (order_index < 1) {
-        return res.status(400).json({
-            error: 'order_index must be greater than 1'
-        });
-    }
-
     const testQuery = `
-        SELECT id
+        SELECT 
+            id,
+            is_published
         FROM tests
         WHERE id = ? AND author_id = ?
     `;
@@ -156,13 +146,25 @@ router.post('/:id/questions', auth, checkRole('teacher'), (req, res) => {
             });
         }
 
-        const orderQuery = `
+        const test = testResult[0];
+
+        if (test.is_published) {
+            return res.status(400).json({
+                error: 'Cannot modify published test'
+            });
+        }
+
+        const duplicateQuestionQuery = `
             SELECT id
             FROM questions
-            WHERE test_id = ? AND order_index = ?
+            WHERE test_id = ?
+            AND text = ?
         `;
 
-        db.query(orderQuery, [test_id, order_index], (err, orderResult) => {
+        db.query(
+            duplicateQuestionQuery,
+            [test_id, text.trim()],
+            (err, duplicateResult) => {
 
             if (err) {
                 console.error(err);
@@ -172,39 +174,33 @@ router.post('/:id/questions', auth, checkRole('teacher'), (req, res) => {
                 });
             }
 
-            if (orderResult.length > 0) {
+            if (duplicateResult.length > 0) {
                 return res.status(400).json({
-                    error: 'order_index already exists'
+                    error: 'Question already exists in this test'
                 });
             }
 
-            const duplicateQuestionQuery = `
-                SELECT id
+            const orderQuery = `
+                SELECT
+                    COALESCE(MAX(order_index), 0) + 1
+                    AS next_order
                 FROM questions
                 WHERE test_id = ?
-                AND text = ?
             `;
 
-            db.query(
-                duplicateQuestionQuery,
-                [test_id, text.trim()],
-                (err, duplicateResult) => {
+            db.query(orderQuery, [test_id], (err, orderResult) => {
 
-                    if (err) {
-                        console.error(err);
-                    
-                        return res.status(500).json({
-                            error: 'Internal server error'
-                        });
-                    }
-            
-                    if (duplicateResult.length > 0) {
-                        return res.status(400).json({
-                            error: 'Question already exists in this test'
-                        });
-                    }
+                if (err) {
+                    console.error(err);
 
-                    const insertQuery = `
+                    return res.status(500).json({
+                        error: 'Internal server error'
+                    });
+                }
+
+                const order_index = orderResult[0].next_order;
+
+                const insertQuery = `
                     INSERT INTO questions (
                         test_id,
                         text,
@@ -212,27 +208,25 @@ router.post('/:id/questions', auth, checkRole('teacher'), (req, res) => {
                         order_index
                     )
                     VALUES (?, ?, ?, ?)
-                    `;
-        
-                    db.query(
-                        insertQuery,
-                        [test_id, text.trim(), type, order_index],
-                        (err, result) => {
-        
-                            if (err) {
-                                console.error(err);
-        
-                                return res.status(500).json({
-                                    error: 'Internal server error'
-                                });
-                            }
-        
-                            res.status(201).json({
-                                message: 'Question created',
-                                question_id: result.insertId
+                `;
+
+                db.query(
+                    insertQuery,[test_id, text.trim(), type, order_index], (err, result) => {
+
+                    if (err) {
+                        console.error(err);
+
+                        return res.status(500).json({
+                            error: 'Internal server error'
                         });
                     }
-                );
+
+                    res.status(201).json({
+                        message: 'Question created',
+                        question_id: result.insertId,
+                        order_index
+                    });
+                });
             });
         });
     });
@@ -304,6 +298,8 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
 
     function validateQuestions(questions) {
 
+        let hasError = false;
+
         let checkedQuestions = 0;
 
         for (const question of questions) {
@@ -316,7 +312,14 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
 
             db.query(answersQuery, [question.id], (err, answersResult) => {
 
+                if (hasError) {
+                    return;
+                }
+
                 if (err) {
+
+                    hasError = true;
+
                     console.error(err);
 
                     return res.status(500).json({
@@ -330,8 +333,12 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
                         answersResult.filter(a => a.is_correct);
 
                     if (correctAnswers.length !== 1) {
+
+                        hasError = true;
+
                         return res.status(400).json({
-                            error: `Single question ${question.id} must have exactly one correct answer`
+                            error:
+                                `Single question ${question.id} must have exactly one correct answer`
                         });
                     }
                 }
@@ -342,8 +349,12 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
                         answersResult.filter(a => a.is_correct);
 
                     if (correctAnswers.length < 1) {
+
+                        hasError = true;
+
                         return res.status(400).json({
-                            error: `Multiple question ${question.id} must have at least one correct answer`
+                            error:
+                                `Multiple question ${question.id} must have at least one correct answer`
                         });
                     }
                 }
@@ -351,21 +362,32 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
                 if (question.type === 'text') {
 
                     if (answersResult.length !== 1) {
+
+                        hasError = true;
+
                         return res.status(400).json({
-                            error: `Text question ${question.id} must have exactly one answer`
+                            error:
+                                `Text question ${question.id} must have exactly one answer`
                         });
                     }
 
                     if (!answersResult[0].is_correct) {
+
+                        hasError = true;
+
                         return res.status(400).json({
-                            error: `Text question ${question.id} answer must be correct`
+                            error:
+                                `Text question ${question.id} answer must be correct`
                         });
                     }
                 }
 
                 checkedQuestions++;
 
-                if (checkedQuestions === questions.length) {
+                if (
+                    !hasError &&
+                    checkedQuestions === questions.length
+                ) {
                     publishTest();
                 }
             });
@@ -396,7 +418,6 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
         });
     }
 });
-
 
 // GET tests/teacher
 router.get('/teacher', auth, checkRole('teacher'), (req, res) => {
@@ -435,21 +456,14 @@ router.get('/teacher', auth, checkRole('teacher'), (req, res) => {
 router.get('/:id/full', auth, checkRole('teacher'), (req, res) => {
     const test_id = req.params.id;
 
-    const query = `
-        SELECT 
-            q.id AS question_id,
-            q.text AS question_text,
-            q.type,
-            a.id AS answer_id,
-            a.text AS answer_text,
-            a.is_correct
-        FROM questions q
-        LEFT OUTER JOIN answers a ON q.id = a.question_id
-        WHERE q.test_id = ?
-        ORDER BY q.order_index
+    const checkQuery = `
+        SELECT id
+        FROM tests
+        WHERE id = ?
     `;
 
-    db.query(query, [test_id], (err, results) => {
+    db.query(checkQuery, [test_id], (err, results) => {
+
         if (err) {
             console.error(err);
 
@@ -458,30 +472,60 @@ router.get('/:id/full', auth, checkRole('teacher'), (req, res) => {
             });
         }
 
-        const questionsMap = {};
+        if (results.length === 0) {
+            return res.status(404).json({
+                error: 'Test not found'
+            });
+        }
 
-        results.forEach(row => {
-            if (!questionsMap[row.question_id]) {
-                questionsMap[row.question_id] = {
-                    id: row.question_id,
-                    text: row.question_text,
-                    type: row.type,
-                    answers: []
-                };
-            }
+        const query = `
+            SELECT 
+                q.id AS question_id,
+                q.text AS question_text,
+                q.type,
+                a.id AS answer_id,
+                a.text AS answer_text,
+                a.is_correct
+            FROM questions q
+            LEFT OUTER JOIN answers a ON q.id = a.question_id
+            WHERE q.test_id = ?
+            ORDER BY q.order_index
+        `;
 
-            if (row.answer_id) {
-                questionsMap[row.question_id].answers.push({
-                    id: row.answer_id,
-                    text: row.answer_text,
-                    is_correct: row.is_correct
+        db.query(query, [test_id], (err, results) => {
+            if (err) {
+                console.error(err);
+
+                return res.status(500).json({
+                    error: 'Internal server error'
                 });
             }
+
+            const questionsMap = {};
+
+            results.forEach(row => {
+                if (!questionsMap[row.question_id]) {
+                    questionsMap[row.question_id] = {
+                        id: row.question_id,
+                        text: row.question_text,
+                        type: row.type,
+                        answers: []
+                    };
+                }
+
+                if (row.answer_id) {
+                    questionsMap[row.question_id].answers.push({
+                        id: row.answer_id,
+                        text: row.answer_text,
+                        is_correct: row.is_correct
+                    });
+                }
+            });
+
+            const formatted = Object.values(questionsMap);
+
+            res.json(formatted);
         });
-
-        const formatted = Object.values(questionsMap);
-
-        res.json(formatted);
     });
 });
 
