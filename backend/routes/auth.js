@@ -5,45 +5,87 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 
-// POST /auth/register
+// POST auth/register
 router.post('/register', async (req, res) => {
-    const { email, password, role } = req.body;
 
-    if (!email || !password || !role) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
-    if (!email.includes('@')) {
-        return res.status(400).json({ error: 'Invalid email' });
-    }
+    try {
 
-    const validRoles = ['student', 'teacher'];
-    if (!validRoles.includes(role)) {
-        return res.status(400).json({ error: 'Invalid role' });
-    }
+        const { email, password, role } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const query = `
-        INSERT INTO users (email, password_hash, role)
-        VALUES (?, ?, ?)
-    `;
-
-    db.query (query, [email, hashedPassword, role ], (err, result) => {
-        if (err) {
-
-            console.error(err);
-            
-            if (err.code === 'ER_DUP_ENTRY') {
-                return res.status(400).json({ error: 'Email already exists' });
-            }
-
-            return res.status(500).json({
-                error: 'Internal server error'
+        if (!email || !password || !role) {
+            return res.status(400).json({
+                error: 'All fields are required'
             });
         }
 
-        res.json({ message: 'User created'});
-    });
+        const safeEmail = email.trim().toLowerCase();
+
+        if (password.length < 8) {
+            return res.status(400).json({
+                error: 'Password must contain at least 8 characters'
+            });
+        }
+
+        if (!safeEmail.includes('@')) {
+            return res.status(400).json({
+                error: 'Invalid email'
+            });
+        }
+
+        const validRoles = ['student', 'teacher'];
+
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({
+                error: 'Invalid role'
+            });
+        }
+
+        const hashedPassword =
+            await bcrypt.hash(password, 10);
+
+        const query = `
+            INSERT INTO users (
+                email,
+                password_hash,
+                role
+            )
+            VALUES (?, ?, ?)
+        `;
+
+        db.query(
+            query,
+            [safeEmail, hashedPassword, role],
+            (err) => {
+
+                if (err) {
+
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        return res.status(400).json({
+                            error: 'Email already exists'
+                        });
+                    }
+                
+                    console.error(err);
+                
+                    return res.status(500).json({
+                        error: 'Internal server error'
+                    });
+                }
+
+                res.json({
+                    message: 'User created'
+                });
+            }
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+        return res.status(500).json({
+            error: 'Internal server error'
+        });
+    }
 });
 
 // POST auth/login
