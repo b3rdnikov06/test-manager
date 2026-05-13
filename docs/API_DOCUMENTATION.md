@@ -117,7 +117,7 @@ Status: `500 Internal Server Error` ("error": "Internal server error")
 Status: `200 OK`
 ```json
 {
-    "token": "jwt_token"
+    "message": "Logged out"
 }
 ```
 
