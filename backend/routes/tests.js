@@ -3,6 +3,8 @@ const router = express.Router();
 const db = require('../db');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/checkRole');
+const validateTestForPublish =  require('../middleware/validateTestForPublish');
+const checkTestNotPublished =  require('../middleware/checkTestNotPublished');
 
 // GET /tests
 router.get('/', auth, (req, res) => {
@@ -233,42 +235,15 @@ router.post('/:id/questions', auth, checkRole('teacher'), (req, res) => {
 });
 
 // PATCH /tests/:id/publish
-router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
+router.patch(
+    '/:id/publish',
+    auth,
+    checkRole('teacher'),
+    checkTestNotPublished,
+    validateTestForPublish,
+    (req, res) => {
 
-    const test_id = req.params.id;
-
-    const teacher_id = req.user.id;
-
-    const testQuery = `
-        SELECT id, is_published
-        FROM tests
-        WHERE id = ?
-        AND author_id = ?
-    `;
-
-    db.query(testQuery, [test_id, teacher_id], (err, testResult) => {
-
-        if (err) {
-            console.error(err);
-
-            return res.status(500).json({
-                error: 'Internal server error'
-            });
-        }
-
-        if (testResult.length === 0) {
-            return res.status(404).json({
-                error: 'Test not found'
-            });
-        }
-
-        const test = testResult[0];
-
-        if (test.is_published) {
-            return res.status(400).json({
-                error: 'Test already published'
-            });
-        }
+        const test_id = req.params.id;
 
         const questionsQuery = `
             SELECT id, type
@@ -286,40 +261,126 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
                 });
             }
 
-            if (questionsResult.length === 0) {
-                return res.status(400).json({
-                    error: 'Test must contain at least one question'
-                });
-            }
-
             validateQuestions(questionsResult);
         });
-    });
 
-    function validateQuestions(questions) {
+        function validateQuestions(questions) {
 
-        let hasError = false;
+            let hasError = false;
 
-        let checkedQuestions = 0;
+            let checkedQuestions = 0;
 
-        for (const question of questions) {
+            for (const question of questions) {
 
-            const answersQuery = `
-                SELECT id, is_correct
-                FROM answers
-                WHERE question_id = ?
+                const answersQuery = `
+                    SELECT id, is_correct
+                    FROM answers
+                    WHERE question_id = ?
+                `;
+
+                db.query(
+                    answersQuery,
+                    [question.id],
+                    (err, answersResult) => {
+
+                        if (hasError) {
+                            return;
+                        }
+
+                        if (err) {
+
+                            hasError = true;
+
+                            console.error(err);
+
+                            return res.status(500).json({
+                                error: 'Internal server error'
+                            });
+                        }
+
+                        if (question.type === 'single') {
+
+                            const correctAnswers =
+                                answersResult.filter(
+                                    a => a.is_correct
+                                );
+
+                            if (correctAnswers.length !== 1) {
+
+                                hasError = true;
+
+                                return res.status(400).json({
+                                    error:
+                                        `Single question ${question.id} must have exactly one correct answer`
+                                });
+                            }
+                        }
+
+                        if (question.type === 'multiple') {
+
+                            const correctAnswers =
+                                answersResult.filter(
+                                    a => a.is_correct
+                                );
+
+                            if (correctAnswers.length < 1) {
+
+                                hasError = true;
+
+                                return res.status(400).json({
+                                    error:
+                                        `Multiple question ${question.id} must have at least one correct answer`
+                                });
+                            }
+                        }
+
+                        if (question.type === 'text') {
+
+                            if (answersResult.length !== 1) {
+
+                                hasError = true;
+
+                                return res.status(400).json({
+                                    error:
+                                        `Text question ${question.id} must have exactly one answer`
+                                });
+                            }
+
+                            if (!answersResult[0].is_correct) {
+
+                                hasError = true;
+
+                                return res.status(400).json({
+                                    error:
+                                        `Text question ${question.id} answer must be correct`
+                                });
+                            }
+                        }
+
+                        checkedQuestions++;
+
+                        if (
+                            !hasError &&
+                            checkedQuestions === questions.length
+                        ) {
+                            publishTest();
+                        }
+                    }
+                );
+            }
+        }
+
+        function publishTest() {
+
+            const publishQuery = `
+                UPDATE tests
+                SET is_published = true
+                WHERE id = ?
             `;
 
-            db.query(answersQuery, [question.id], (err, answersResult) => {
-
-                if (hasError) {
-                    return;
-                }
+            db.query(publishQuery, [test_id], (err) => {
 
                 if (err) {
-
-                    hasError = true;
-
                     console.error(err);
 
                     return res.status(500).json({
@@ -327,97 +388,13 @@ router.patch('/:id/publish', auth, checkRole('teacher'), (req, res) => {
                     });
                 }
 
-                if (question.type === 'single') {
-
-                    const correctAnswers =
-                        answersResult.filter(a => a.is_correct);
-
-                    if (correctAnswers.length !== 1) {
-
-                        hasError = true;
-
-                        return res.status(400).json({
-                            error:
-                                `Single question ${question.id} must have exactly one correct answer`
-                        });
-                    }
-                }
-
-                if (question.type === 'multiple') {
-
-                    const correctAnswers =
-                        answersResult.filter(a => a.is_correct);
-
-                    if (correctAnswers.length < 1) {
-
-                        hasError = true;
-
-                        return res.status(400).json({
-                            error:
-                                `Multiple question ${question.id} must have at least one correct answer`
-                        });
-                    }
-                }
-
-                if (question.type === 'text') {
-
-                    if (answersResult.length !== 1) {
-
-                        hasError = true;
-
-                        return res.status(400).json({
-                            error:
-                                `Text question ${question.id} must have exactly one answer`
-                        });
-                    }
-
-                    if (!answersResult[0].is_correct) {
-
-                        hasError = true;
-
-                        return res.status(400).json({
-                            error:
-                                `Text question ${question.id} answer must be correct`
-                        });
-                    }
-                }
-
-                checkedQuestions++;
-
-                if (
-                    !hasError &&
-                    checkedQuestions === questions.length
-                ) {
-                    publishTest();
-                }
+                res.json({
+                    message: 'Test published successfully'
+                });
             });
         }
     }
-
-    function publishTest() {
-
-        const publishQuery = `
-            UPDATE tests
-            SET is_published = true
-            WHERE id = ?
-        `;
-
-        db.query(publishQuery, [test_id], (err) => {
-
-            if (err) {
-                console.error(err);
-
-                return res.status(500).json({
-                    error: 'Internal server error'
-                });
-            }
-
-            res.json({
-                message: 'Test published successfully'
-            });
-        });
-    }
-});
+);
 
 // GET tests/teacher
 router.get('/teacher', auth, checkRole('teacher'), (req, res) => {
