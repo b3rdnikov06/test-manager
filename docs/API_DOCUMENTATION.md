@@ -693,8 +693,8 @@ Status: `400 Bad Request` ("error": "Answer text is required")
 - is_correct must be boolean  
 Status: `400 Bad Request` ("error": "is_correct must be boolean")
 - Cannot modify published test  
-Status: `400 Bad Request ("error": "Cannot modify published test")
-- Single choice question` can have only one correct answer  
+Status: `400 Bad Request` ("error": "Cannot modify published test")
+- Single choice question can have only one correct answer  
 Status: `400 Bad Request` ("error": "Single choice question can have only one correct answer")
 - Text question answer must be correct  
 Status: `400 Bad Request` ("error": "Text question answer must be correct")
