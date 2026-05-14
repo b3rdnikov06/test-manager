@@ -226,7 +226,7 @@ Status: `200 OK`
 ```
 
 **Ответы об ошибках:**
-- Missing token
+- Missing token  
 Status: `401 Unauthorized` ("error": "Access denied")
 - Invalid token  
 Status: `401 Unauthorized` ("error": "Invalid token")
@@ -289,7 +289,7 @@ Status: `200 OK`
 ```
 
 **Ответы об ошибках:**
-- Missing token
+- Missing token  
 Status: `401 Unauthorized` ("error": "Access denied")
 - Invalid token  
 Status: `401 Unauthorized` ("error": "Invalid token")
@@ -620,17 +620,17 @@ Status: `500 Internal Server Error` ("error": "Internal server error")
 ```
 
 **Ответы об ошибках:**
-- Test with attempts cannot be deleted
+- Test with attempts cannot be deleted  
 Status: `400 Bad Request` ("error": "Test with attempts cannot be deleted")
-- Missing token
+- Missing token  
 Status: `401 Unauthorized` ("error": "Access denied")
-- Invalid token
+- Invalid token  
 Status: `401 Unauthorized` ("error": "Invalid token")
-- Access denied
+- Access denied  
 Status: `403 Forbidden` ("error": "Access denied")
-- Test not found
+- Test not found  
 Status: `404 Not Found` ("error": "Test not found")
-- Internal server error
+- Internal server error  
 Status: `500 Internal Server Error` ("error": "Internal server error")
 
 **Бизнес правила:**
@@ -642,3 +642,699 @@ Status: `500 Internal Server Error` ("error": "Internal server error")
 
 ---
 ---
+
+## Questions
+
+### POST /questions/:id/answers
+
+**Описание:** добавляет новый ответ к вопросу.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** только teacher.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:**
+```json
+{
+    "text": "Ответ на вопрос",
+    "is_correct": true
+}
+```
+
+**URL параметры:**
+| Параметр | Тип     | Описание            |
+| -------- | ------- | ------------------- |
+| id       | integer | Идентификатор вопроса |
+
+**Поля запроса:**
+| Поле     | Тип    | Обязательно | Описание                       |
+| -------- | ------ | ----------- | ------------------------------ |
+| text    | string | yes         | Текст ответа |
+| is_correct | boolen | yes         | Корректный ли вопрос: true/false            |
+
+**Успешный ответ:**
+```json
+{
+    "message": "Answer created",
+    "answer_id": 76
+}
+```
+
+**Ответы об ошибках:**
+- Answer text is required  
+Status: `400 Bad Request` ("error": "Answer text is required")
+- is_correct must be boolean  
+Status: `400 Bad Request` ("error": "is_correct must be boolean")
+- Cannot modify published test  
+Status: `400 Bad Request ("error": "Cannot modify published test")
+- Single choice question` can have only one correct answer  
+Status: `400 Bad Request` ("error": "Single choice question can have only one correct answer")
+- Text question answer must be correct  
+Status: `400 Bad Request` ("error": "Text question answer must be correct")
+- Text question can have only one answer  
+Status: `400 Bad Request` ("error": "Text question can have only one answer")
+- Answer already exists for this question  
+Status: `400 Bad Request` ("error": "Answer already exists for this question")
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+- Question not found  
+Status: `404 Not Found` ("error": "Question not found")
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Только преподаватель может добавлять ответы.
+- Преподаватель может изменять только собственные тесты.
+- Нельзя изменять опубликованный тест.
+- Ответы внутри одного вопроса должны быть уникальными.
+- Вопрос типа single может содержать только один правильный ответ.
+- Вопрос типа text может содержать только один ответ.
+- Для вопроса типа text ответ всегда должен быть правильным.
+
+---
+
+### PATCH /questions/:id
+
+**Описание:** изменяет текст вопроса.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** только teacher.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:**
+```json
+{
+    "text": "Новый заголовок вопроса"
+}
+```
+
+**URL параметры:**
+| Параметр | Тип     | Описание              |
+| -------- | ------- | --------------------- |
+| id       | integer | Идентификатор вопроса |
+
+**Поля запроса:**
+| Поле     | Тип    | Обязательно | Описание                       |
+| -------- | ------ | ----------- | ------------------------------ |
+| text    | string | yes         | Текст вопроса |
+
+**Успешный ответ:**
+```json
+{
+    "message": "Question updated"
+}
+```
+
+**Ответы об ошибках:**
+- Question text is required  
+Status: `400 Bad Request` ("error": "Question text is required")
+- Cannot modify question while test attempt is active  
+Status: `400 Bad Request` ("error": "Cannot modify question while test attempt is active")
+- Question already exists  
+Status: `400 Bad Request` ("error": "Question already exists")
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+- Question not found  
+Status: `404 Not Found` ("error": "Question not found")
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Только преподаватель может изменять вопросы.
+- Преподаватель может изменять только собственные тесты.
+- Изменение вопроса запрещено при наличии активной попытки прохождения теста.
+- Внутри одного теста вопросы должны быть уникальными.
+- Разрешено изменять только текст вопроса.
+- Тип вопроса и структура ответов не изменяются.
+
+---
+
+### DELETE /questions/:id
+
+**Описание:** удаляет вопрос из теста вместе со всеми связанными ответами.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** только teacher.  
+
+**Headers:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**URL параметры:**
+| Параметр | Тип     | Описание              |
+| -------- | ------- | --------------------- |
+| id       | integer | Идентификатор вопроса |
+
+**Успешный ответ:**
+```json
+{
+    "message": "Question deleted"
+}
+```
+
+**Ответы об ошибках:**
+- Published test cannot be edited  
+Status: `400 Bad Request` ("error": "Published test cannot be edited")
+- Cannot delete the last question from the test  
+Status: `400 Bad Request` ("error": "Cannot delete the last question from the test. Delete the whole test instead.")
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+- Question not found  
+Status: `404 Not Found` ("error": "Question not found")
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Только преподаватель может удалять вопросы.
+- Преподаватель может изменять только собственные тесты.
+- Нельзя изменять опубликованный тест.
+- Нельзя удалить последний вопрос из теста.
+- При удалении вопроса автоматически удаляются все связанные ответы.
+
+---
+---
+
+## Attempts
+
+### GET /attempts/:id
+
+**Описание:** возвращает тест с вопросами и вариантами ответов для прохождения попытки.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** доступ у авторизованных пользователей.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**URL параметры:**
+| Параметр | Тип     | Описание              |
+| -------- | ------- | --------------------- |
+| id       | integer | Идентификатор попытки |
+
+**Успешный ответ:**
+```json
+{
+    "attempt_id": "9",
+    "test": {
+        "id": 11,
+        "title": "Тест проверки и того и того",
+        "description": null,
+        "time_limit": 30
+    },
+    "questions": [
+        {
+            "id": 46,
+            "text": "первый вопрос",
+            "type": "single",
+            "order_index": 1,
+            "answers": [
+                {
+                    "id": 71,
+                    "text": "Второй"
+                },
+                {
+                    "id": 66,
+                    "text": "Первый"
+                }
+            ]
+        }
+    ]
+}
+```
+
+**Ответы об ошибках:**
+- Test not found  
+Status: `404 Not Found` ("error": "Test not found")
+- Attempt already completed  
+Status: `400 Bad Request`
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden`
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Пользователь может получать только собственную попытку.
+- Endpoint доступен только для незавершенных попыток.
+- Для вопросов типа text варианты ответов не отображаются.
+- Правильные ответы скрыты от пользователя.
+- Вопросы сортируются по order_index.
+
+---
+
+### POST /attempts/start
+
+**Описание:** создает новую попытку прохождения теста.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** доступ у авторизованных пользователей.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:**
+```json
+{
+    "test_id": 11
+}
+```
+
+**Поля запроса:**
+| Поле     | Тип    | Обязательно | Описание                       |
+| -------- | ------ | ----------- | ------------------------------ |
+| test_id    | integer | yes         | id теста, который нужно начать |
+
+**Успешный ответ:**
+```json
+{
+    "message": "Attempt started",
+    "attempt_id": 9
+}
+```
+
+**Ответы об ошибках:**
+- Test not found or not published  
+Status: `404 Not Found` ("error": "Test not found or not published")
+- You already started this test  
+Status: `400 Bad Request` ("error": "You already started this test")
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Попытку можно создать только для опубликованного теста.
+- Один пользователь может иметь только одну попытку для одного теста.
+- Время начала попытки фиксируется автоматически.
+
+---
+
+### POST /auth/register
+
+### POST /attempts/:id/answer
+
+**Описание:** сохраняет ответ пользователя на вопрос.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** доступ у авторизованных пользователей.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:**
+```json
+{
+    "question_id": 26,
+    "answer_id": 36
+}
+```
+
+**URL параметры:**
+| Параметр | Тип     | Описание              |
+| -------- | ------- | --------------------- |
+| id       | integer | Идентификатор попытки |
+
+**Поля запроса:**
+| Поле     | Тип    | Обязательно | Описание                       |
+| -------- | ------ | ----------- | ------------------------------ |
+| question_id    | integer | yes         | id вопроса |
+| answer_id | integer | yes         | id ответа           |
+
+**Успешный ответ:**
+```json
+{
+    "message": "Answer saved"
+}
+```
+
+**Ответы об ошибках:**
+- question_id required  
+Status: `400 Bad Request`
+- Answer required  
+Status: `400 Bad Request`
+- Choose answer OR text, not both  
+Status: `400 Bad Request`
+- Text answer cannot be empty  
+Status: `400 Bad Request`
+- Invalid question id  
+Status: `400 Bad Request`
+- Invalid answer id  
+Status: `400 Bad Request`
+- Text answer allowed only for text questions  
+Status: `400 Bad Request`
+- Text question cannot use answer_id  
+Status: `400 Bad Request`
+- Text answer required  
+Status: `400 Bad Request`
+- Text answer already submitted  
+Status: `400 Bad Request`
+- Only one answer allowed for single question  
+Status: `400 Bad Request`
+- Answer already submitted  
+Status: `400 Bad Request`
+- Attempt already completed  
+Status: `400 Bad Request`
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden`
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Пользователь может отвечать только в собственной попытке.
+- Ответы можно отправлять только в незавершенной попытке.
+- Для вопроса типа single разрешен только один ответ.
+- Для вопроса типа multiple разрешено несколько ответов.
+- Для вопроса типа text разрешен только текстовый ответ.
+- Для вопросов типов single и multiple запрещены text_answer.
+- Для вопросов типа text запрещен answer_id.
+- Повторная отправка одинакового ответа запрещена.
+
+---
+
+### POST /attempts/:id/submit
+
+**Описание:** завершает попытку прохождения теста и рассчитывает результат.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** доступ у авторизованных пользователей.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**URL параметры:**
+| Параметр | Тип     | Описание              |
+| -------- | ------- | --------------------- |
+| id       | integer | Идентификатор попытки |
+
+**Успешный ответ:**
+```json
+{
+    "message": "Test completed",
+    "score": 2,
+    "total": 5,
+    "percentage": 40
+}
+```
+
+**Ответы об ошибках:**
+- Test already completed  
+Status: `400 Bad Request` ("error": "Test already completed")
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden`
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Пользователь может завершить только собственную попытку.
+- После завершения попытки ответы больше нельзя изменять.
+- Результат теста рассчитывается автоматически.
+- После завершения вычисляются score, total и percentage.
+- Повторное завершение попытки запрещено.
+
+---
+---
+
+## Results
+
+### GET /results/:attempt_id
+
+**Описание:** возвращает подробный результат попытки прохождения теста.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** доступ у владельца попытки и teacher.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**URL параметры:**
+| Параметр   | Тип     | Описание              |
+| ---------- | ------- | --------------------- |
+| attempt_id | integer | Идентификатор попытки |
+
+**Успешный ответ:**
+```json
+{
+    "attempt_id": "9",
+    "user_id": 12,
+    "test_id": 11,
+    "title": "Заголовок текста",
+    "score": 2,
+    "total": 5,
+    "percentage": 40,
+    "questions": [
+        {
+            "question_id": 46,
+            "question_text": "первый вопрос",
+            "type": "single",
+            "answers": [
+                {
+                    "answer_id": 71,
+                    "text": "Второй",
+                    "is_correct": 0,
+                    "selected": false
+                },
+                {
+                    "answer_id": 66,
+                    "text": "Первый",
+                    "is_correct": 1,
+                    "selected": true
+                }
+            ]
+        }
+    ]
+}
+```
+
+**Ответы об ошибках:**
+- Test not completed yet  
+Status: `400 Bad Request` ("error": "Test not completed yet")
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+- Attempt not found  
+Status: `404 Not Found` ("error": "Attempt not found")
+- Result not found  
+Status: `404 Not Found` ("error": "Result not found")
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Студент может просматривать только собственные результаты.
+- Преподаватель может просматривать любые результаты.
+- Результат доступен только после завершения попытки.
+- Для вопросов типа text отображается text_answer.
+- Для вопросов типов single и multiple отображается selected.
+- В ответе отображаются правильные ответы.
+- Результат содержит score, total и percentage.
+
+---
+
+### GET /results/tests/:id
+
+**Описание:** возвращает результаты всех попыток прохождения определенного теста.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** только teacher.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**URL параметры:**
+| Параметр | Тип     | Описание            |
+| -------- | ------- | ------------------- |
+| id       | integer | Идентификатор теста |
+
+**Успешный ответ:**
+```json
+{
+    "test_id": 2,
+    "title": "Проверка на знание ног у животных и млекопитающих",
+    "attempts": [
+        {
+            "attempt_id": 6,
+            "user_id": 12,
+            "started_at": "2026-05-12T20:19:42.000Z",
+            "finished_at": "2026-05-12T20:21:54.000Z",
+            "score": 3,
+            "total": 3,
+            "percentage": 100
+        }
+    ]
+}
+```
+
+**Ответы об ошибках:**
+-  Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+-  Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+-  Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+-  Test not found  
+Status: `404 Not Found` ("error": "Test not found")
+-  Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Endpoint доступен только преподавателям.
+- Преподаватель может просматривать результаты любых тестов.
+- В ответе отображаются все попытки прохождения теста.
+- Для каждой попытки отображаются score, total и percentage.
+- Попытки сортируются по started_at в порядке убывания.
+
+---
+
+### GET /results/student/:id
+
+**Описание:** возвращает ведомость студента со всеми результатами тестов.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** доступ у владельца ведомости и teacher.  
+
+**Headers:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**URL параметры:**
+| Параметр | Тип     | Описание                   |
+| -------- | ------- | -------------------------- |
+| id       | integer | Идентификатор пользователя |
+
+**Успешный ответ:**
+```json
+{
+    "user_id": 12,
+    "email": "three@mail.ru",
+    "role": "student",
+    "attempts": [
+        {
+            "attempt_id": 9,
+            "test_id": 11,
+            "title": "Тест проверки и того и того",
+            "started_at": "2026-05-14T11:24:37.000Z",
+            "finished_at": "2026-05-14T11:43:47.000Z",
+            "duration_minutes": 19,
+            "score": 2,
+            "total": 5,
+            "percentage": 40
+        }
+    ]
+}
+```
+
+**Ответы об ошибках:**
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+- User not found  
+Status: `404 Not Found` ("error": "User not found")
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Студент может просматривать только собственную ведомость.
+- Преподаватель может просматривать ведомость любого студента.
+- Ведомость содержит только завершенные попытки.
+- Для каждой попытки отображаются:
+    название теста,
+    score,
+    total,
+    percentage,
+    время начала и завершения,
+    duration_minutes.
+- Попытки сортируются по started_at в порядке убывания.
