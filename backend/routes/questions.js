@@ -439,4 +439,106 @@ router.delete('/:id', auth, checkRole('teacher'), (req, res) => {
     });
 });
 
+// DELETE /questions/answers/:id
+router.delete(
+    '/answers/:id',
+    auth,
+    checkRole('teacher'),
+    (req, res) => {
+
+        const answer_id =
+            req.params.id;
+
+        const teacher_id =
+            req.user.id;
+
+        const answerQuery = `
+            SELECT
+                a.id,
+                q.id AS question_id,
+                t.author_id,
+                t.is_published
+            FROM answers a
+            JOIN questions q
+                ON a.question_id = q.id
+            JOIN tests t
+                ON q.test_id = t.id
+            WHERE a.id = ?
+        `;
+
+        db.query(
+            answerQuery,
+            [answer_id],
+            (err, answerResult) => {
+
+                if (err) {
+                    console.error(err);
+
+                    return res.status(500).json({
+                        error:
+                            'Internal server error'
+                    });
+                }
+
+                if (
+                    answerResult.length === 0
+                ) {
+                    return res.status(404).json({
+                        error:
+                            'Answer not found'
+                    });
+                }
+
+                const answer =
+                    answerResult[0];
+
+                if (
+                    answer.author_id !==
+                    teacher_id
+                ) {
+                    return res.status(403).json({
+                        error:
+                            'Access denied'
+                    });
+                }
+
+                if (
+                    answer.is_published
+                ) {
+                    return res.status(400).json({
+                        error:
+                            'Published test cannot be edited'
+                    });
+                }
+
+                const deleteQuery = `
+                    DELETE FROM answers
+                    WHERE id = ?
+                `;
+
+                db.query(
+                    deleteQuery,
+                    [answer_id],
+                    (err) => {
+
+                        if (err) {
+                            console.error(err);
+
+                            return res.status(500).json({
+                                error:
+                                    'Internal server error'
+                            });
+                        }
+
+                        res.json({
+                            message:
+                                'Answer deleted'
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
+
 module.exports = router;
