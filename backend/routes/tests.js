@@ -403,16 +403,26 @@ router.get('/teacher', auth, checkRole('teacher'), (req, res) => {
 
     const query = `
         SELECT
-            id,
-            title,
-            description,
-            time_limit,
-            attempts_limit,
-            is_published,
-            created_at
-        FROM tests
-        WHERE author_id = ?
-        ORDER BY created_at DESC
+            t.id,
+            t.title,
+            t.description,
+            t.time_limit,
+            t.attempts_limit,
+            t.is_published,
+            t.created_at,
+
+            COUNT(a.id) AS attempts_count
+
+        FROM tests t
+
+        LEFT JOIN attempts a
+            ON t.id = a.test_id
+
+        WHERE t.author_id = ?
+
+        GROUP BY t.id
+
+        ORDER BY t.created_at DESC
     `;
 
     db.query(query, [teacher_id], (err, results) => {
@@ -434,12 +444,17 @@ router.get('/:id/full', auth, checkRole('teacher'), (req, res) => {
     const test_id = req.params.id;
 
     const checkQuery = `
-        SELECT id
+        SELECT
+            id,
+            title,
+            description,
+            time_limit,
+            is_published
         FROM tests
         WHERE id = ?
     `;
 
-    db.query(checkQuery, [test_id], (err, results) => {
+    db.query(checkQuery, [test_id], (err, testResult) => {
 
         if (err) {
             console.error(err);
@@ -449,7 +464,7 @@ router.get('/:id/full', auth, checkRole('teacher'), (req, res) => {
             });
         }
 
-        if (results.length === 0) {
+        if (testResult.length === 0) {
             return res.status(404).json({
                 error: 'Test not found'
             });
@@ -501,7 +516,25 @@ router.get('/:id/full', auth, checkRole('teacher'), (req, res) => {
 
             const formatted = Object.values(questionsMap);
 
-            res.json(formatted);
+            res.json({
+
+                id:
+                    testResult[0].id,
+            
+                title:
+                    testResult[0].title,
+            
+                description:
+                    testResult[0].description,
+            
+                time_limit:
+                    testResult[0].time_limit,
+            
+                is_published:
+                    testResult[0].is_published,
+            
+                questions: formatted
+            });
         });
     });
 });
