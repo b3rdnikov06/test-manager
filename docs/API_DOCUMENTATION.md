@@ -615,7 +615,7 @@ Status: `500 Internal Server Error` ("error": "Internal server error")
 **Успешный ответ:**
 ```json
 {
-    "message": "Question deleted"
+    "message": "Test deleted"
 }
 ```
 
@@ -842,6 +842,56 @@ Status: `500 Internal Server Error` ("error": "Internal server error")
 - Нельзя изменять опубликованный тест.
 - Нельзя удалить последний вопрос из теста.
 - При удалении вопроса автоматически удаляются все связанные ответы.
+
+---
+
+### DELETE /questions/answers/:id
+
+**Описание:** удаляет ответ на вопрос из теста.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** только teacher.  
+
+**Headers:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**URL параметры:**
+| Параметр | Тип     | Описание              |
+| -------- | ------- | --------------------- |
+| id       | integer | Идентификатор ответа |
+
+**Успешный ответ:**
+```json
+{
+    "message": "Answer deleted"
+}
+```
+
+**Ответы об ошибках:**
+- Published test cannot be edited  
+Status: `400 Bad Request` ("error": "Published test cannot be edited")
+- Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+- Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+- Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+- Answer not found  
+Status: `404 Not Found` ("error": "Answer not found")
+- Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Только преподаватель может удалять ответы.
+- Преподаватель может изменять только собственные тесты.
+- Нельзя изменять ответы опубликованного теста.
 
 ---
 ---
@@ -1338,3 +1388,49 @@ Status: `500 Internal Server Error` ("error": "Internal server error")
     время начала и завершения,
     duration_minutes.
 - Попытки сортируются по started_at в порядке убывания.
+
+---
+---
+
+## Users
+
+### GET /users/students
+
+**Описание:** получение списка всех студентов.  
+
+**Авторизация:** требуется Bearer Token.  
+
+**Роль:** только teacher.  
+
+**Заголовки:**
+```json
+{
+    "Authorization": "Bearer jwt_token"
+}
+```
+
+**Тело запроса:** отсутствует.  
+
+**Успешный ответ:**
+```json
+[
+  {
+    "id": 2,
+    "email": "student@test.com"
+  }
+]
+```
+
+**Ответы об ошибках:**
+-  Missing token  
+Status: `401 Unauthorized` ("error": "Access denied")
+-  Invalid token  
+Status: `401 Unauthorized` ("error": "Invalid token")
+-  Access denied  
+Status: `403 Forbidden` ("error": "Access denied")
+-  Internal server error  
+Status: `500 Internal Server Error` ("error": "Internal server error")
+
+**Бизнес правила:**
+- Только преподаватель может просматривать список студентов.
+- Возвращаются только пользователи с ролью student.
