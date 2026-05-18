@@ -36,6 +36,12 @@ function AttemptPage() {
     
     const navigate =
         useNavigate();
+    
+    const [timeLeft, setTimeLeft] =
+        useState(null);
+
+    const [isSubmitting, setIsSubmitting] =
+        useState(false);
 
     useEffect(() => {
 
@@ -64,6 +70,66 @@ function AttemptPage() {
         fetchAttempt();
 
     }, [id]);
+
+    useEffect(() => {
+
+        if (!data) {
+            return;
+        }
+    
+        const started =
+            new Date(
+                data.test.started_at
+            );
+    
+        const limitMs =
+            data.test.time_limit
+            * 60
+            * 1000;
+    
+        let interval;
+    
+        function updateTimer() {
+    
+            const now =
+                new Date();
+    
+            const elapsed =
+                now - started;
+    
+            const remaining =
+                limitMs - elapsed;
+    
+            if (remaining <= 0) {
+    
+                clearInterval(interval);
+    
+                setTimeLeft(0);
+    
+                navigate('/tests');
+    
+                return;
+            }
+    
+            setTimeLeft(
+                Math.floor(
+                    remaining / 1000
+                )
+            );
+        }
+    
+        updateTimer();
+    
+        interval =
+            setInterval(
+                updateTimer,
+                1000
+            );
+    
+        return () =>
+            clearInterval(interval);
+    
+    }, [data, isSubmitting]);
 
     function handleAnswer(
         question,
@@ -97,6 +163,17 @@ function AttemptPage() {
     }
 
     async function handleSubmit() {
+
+        const confirmed =
+            window.confirm(
+                'Are you sure?\n\nYou cannot change answers after submission.'
+            );
+
+        if (!confirmed) {
+            return;
+        }
+        
+        setIsSubmitting(true);
 
         try {
     
@@ -143,14 +220,35 @@ function AttemptPage() {
             navigate(
                 `/results/${id}`
             );
+
+            showError(
+                'Time limit exceeded'
+            );
     
         } catch (err) {
-    
+
+            setIsSubmitting(false);
+        
             showError(
                 err.response?.data?.error ||
                 'Failed to submit test'
             );
         }
+    }
+
+    function formatTime(seconds) {
+
+        const minutes =
+            Math.floor(seconds / 60);
+    
+        const secs =
+            seconds % 60;
+    
+        return `${minutes}:${
+            secs < 10
+                ? '0'
+                : ''
+        }${secs}`;
     }
 
     if (loading) {
@@ -195,6 +293,32 @@ function AttemptPage() {
             <h1>
                 {data.test.title}
             </h1>
+
+            <p>
+
+                Warning:
+                {' '}
+
+                answers will not be saved
+                automatically after the timer
+                expires. Finish the test
+                before time runs out.
+
+            </p>
+
+            {
+                timeLeft !== null && (
+
+                    <p>
+
+                        Time left:
+                        {' '}
+
+                        {formatTime(timeLeft)}
+
+                    </p>
+                )
+            }
 
             <p>
                 {data.test.description}
@@ -299,8 +423,13 @@ function AttemptPage() {
             <button
                 type="button"
                 onClick={handleSubmit}
+                disabled={isSubmitting}
             >
-                Submit Test
+                {
+                    isSubmitting
+                        ? 'Submitting...'
+                        : 'Submit Test'
+                }
             </button>
 
         </div>

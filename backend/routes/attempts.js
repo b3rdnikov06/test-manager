@@ -98,7 +98,8 @@ router.get('/:id', auth, checkAttempt, checkAttemptNotFinished, (req, res) => {
                     id: test.id,
                     title: test.title,
                     description: test.description,
-                    time_limit: test.time_limit
+                    time_limit: test.time_limit,
+                    started_at: req.attempt.started_at
                 },
                 questions
             });
