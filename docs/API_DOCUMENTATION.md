@@ -168,11 +168,10 @@ Status: `200 OK`
         "id": 1,
         "title": "Java Basics",
         "description": "Test for Java knowledge",
-        "author_id": 3,
         "time_limit": 5,
-        "attempts_limit": 1,
         "is_published": 1,
-        "created_at": "2026-05-11T16:16:26.000Z"
+        "attempt_id": 18,
+        "is_completed": 1
     }
 ]
 ```
