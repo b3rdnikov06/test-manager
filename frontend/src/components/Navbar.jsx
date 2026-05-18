@@ -37,7 +37,7 @@ function Navbar() {
                         {' | '}
 
                         {
-                            user.role === 'teacher' && (
+                            user?.role === 'teacher' && (
                                 <>
                                     <Link
                                         to="/tests/teacher"
@@ -54,15 +54,15 @@ function Navbar() {
                                     </Link>
 
                                     {' | '}
+
+                                    <Link to="/students">
+                                        Students
+                                    </Link>
+
+                                    {' | '}
                                 </>
                             )
                         }
-
-                        <Link to="/students">
-                            Students
-                        </Link>
-
-                        {' | '}
 
                         <button
                             onClick={logout}

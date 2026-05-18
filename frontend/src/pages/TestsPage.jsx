@@ -116,7 +116,8 @@ function TestsPage() {
                                 </p>
 
                                 {
-                                    test.is_published && (
+                                    test.is_published && 
+                                    user?.role === 'teacher' && (
 
                                         <div>
 
