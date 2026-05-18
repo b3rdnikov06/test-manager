@@ -5,7 +5,7 @@ module.exports = (req, res, next) => {
     const test_id = req.params.id;
 
     const questionsQuery = `
-        SELECT id, type
+        SELECT id, type, order_index
         FROM questions
         WHERE test_id = ?
     `;
@@ -86,7 +86,7 @@ module.exports = (req, res, next) => {
 
                         return res.status(400).json({
                             error:
-                                `Question ${question.id} must contain at least 2 answers`
+                                `Question ${question.order_index} must contain at least 2 answers`
                         });
                     }
 
