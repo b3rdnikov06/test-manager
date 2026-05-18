@@ -196,7 +196,26 @@ function TestsPage() {
                                 {
                                     test.is_published &&
                                     user?.role === 'student' &&
-                                    test.attempt_id && (
+                                    test.attempt_id &&
+                                    !Boolean(test.is_completed) && (
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/attempt/${test.attempt_id}`
+                                                )
+                                            }
+                                        >
+                                            Continue Test
+                                        </button>
+                                    )
+                                }
+
+                                {
+                                    test.is_published &&
+                                    user?.role === 'student' &&
+                                    Boolean(test.is_completed) && (
 
                                         <button
                                             type="button"
