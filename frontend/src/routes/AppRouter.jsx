@@ -54,9 +54,9 @@ function AppRouter() {
                 />
 
                 <Route
-                path="/attempt/:id"
+                    path="/attempt/:id"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute role="student">
                             <MainLayout>
                                 <AttemptPage />
                             </MainLayout>
@@ -67,7 +67,7 @@ function AppRouter() {
                 <Route
                     path="/results/:id"
                     element={
-                        <ProtectedRoute role="teacher">
+                        <ProtectedRoute>
                             <MainLayout>
                                 <ResultPage />
                             </MainLayout>

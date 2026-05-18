@@ -17,6 +17,10 @@ import {
 
 import ErrorToast from '../components/ErrorToast';
 
+import {
+    startAttempt
+} from '../services/attemptsService';
+
 function TestsPage() {
 
     const navigate =
@@ -43,6 +47,30 @@ function TestsPage() {
             setError('');
     
         }, 10000);
+    }
+
+    async function handleStartTest(
+        testId
+    ) {
+    
+        try {
+    
+            const data =
+                await startAttempt(
+                    testId
+                );
+    
+            navigate(
+                `/attempt/${data.attempt_id}`
+            );
+    
+        } catch (err) {
+    
+            showError(
+                err.response?.data?.error ||
+                'Failed to start test'
+            );
+        }
     }
 
     useEffect(() => {
@@ -116,7 +144,7 @@ function TestsPage() {
                                 </p>
 
                                 {
-                                    test.is_published && 
+                                    test.is_published &&
                                     user?.role === 'teacher' && (
 
                                         <div>
@@ -147,6 +175,42 @@ function TestsPage() {
                                     )
                                 }
 
+                                {
+                                    test.is_published &&
+                                    user?.role === 'student' &&
+                                    !test.attempt_id && (
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                handleStartTest(
+                                                    test.id
+                                                )
+                                            }
+                                        >
+                                            Start Test
+                                        </button>
+                                    )
+                                }
+
+                                {
+                                    test.is_published &&
+                                    user?.role === 'student' &&
+                                    test.attempt_id && (
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/results/${test.attempt_id}`
+                                                )
+                                            }
+                                        >
+                                            View Result
+                                        </button>
+                                    )
+                                }
+                                
                                 <hr />
 
                             </div>

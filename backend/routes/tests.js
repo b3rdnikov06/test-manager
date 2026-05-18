@@ -8,17 +8,45 @@ const checkTestNotPublished =  require('../middleware/checkTestNotPublished');
 
 // GET /tests
 router.get('/', auth, (req, res) => {
-    db.query('SELECT * FROM tests WHERE is_published = true', (err, results) => {
-        if (err) {
-            console.error(err);
 
-            return res.status(500).json({
-                error: 'Internal server error'
-            });
+    const query = `
+        SELECT
+            t.id,
+            t.title,
+            t.description,
+            t.time_limit,
+            t.is_published,
+
+            a.id AS attempt_id,
+
+            a.finished_at IS NOT NULL
+                AS is_completed
+
+        FROM tests t
+
+        LEFT JOIN attempts a
+            ON a.test_id = t.id
+            AND a.user_id = ?
+
+        WHERE t.is_published = true
+    `;
+
+    db.query(
+        query,
+        [req.user.id],
+        (err, results) => {
+
+            if (err) {
+                console.error(err);
+
+                return res.status(500).json({
+                    error: 'Internal server error'
+                });
+            }
+
+            res.json(results);
         }
-
-        res.json(results);
-    });
+    );
 });
 
 // POST /tests
