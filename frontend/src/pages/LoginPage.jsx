@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import {
+    Link
+} from 'react-router-dom';
+
 import { loginUser }
     from '../services/authService';
 
@@ -86,6 +90,12 @@ function LoginPage() {
                 </button>
 
             </form>
+
+            <br />
+
+            <Link to="/register">
+                Register
+            </Link>
 
             {
                 error &&

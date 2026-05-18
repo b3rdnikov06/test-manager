@@ -12,3 +12,16 @@ export async function loginUser(email, password) {
 
     return response.data;
 }
+
+export async function register(
+    userData
+) {
+
+    const response =
+        await api.post(
+            '/auth/register',
+            userData
+        );
+
+    return response.data;
+}
