@@ -27,16 +27,16 @@ function ResultPage() {
     const [error, setError] =
         useState('');
 
-        function showError(message) {
+    function showError(message) {
 
-            setError(message);
-        
-            setTimeout(() => {
-        
-                setError('');
-        
-            }, 10000);
-        }
+        setError(message);
+    
+        setTimeout(() => {
+    
+            setError('');
+    
+        }, 10000);
+    }
 
     useEffect(() => {
 
