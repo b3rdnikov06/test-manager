@@ -163,6 +163,17 @@ function AppRouter() {
                     }
                 />
 
+                <Route
+                    path="/tests/completed"
+                    element={
+                        <ProtectedRoute>
+                            <MainLayout>
+                                <TestsPage />
+                            </MainLayout>
+                        </ProtectedRoute>
+                    }
+                />
+
             </Routes>
         </BrowserRouter>
     );

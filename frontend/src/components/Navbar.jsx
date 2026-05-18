@@ -63,6 +63,16 @@ function Navbar() {
                                 </>
                             )
                         }
+                        
+                        {
+                            user?.role === 'student' && (
+                            <>
+                            <Link to="/tests/completed">
+                                Completed Tests
+                            </Link>
+                            </>
+                            )
+                        }
 
                         <button
                             onClick={logout}

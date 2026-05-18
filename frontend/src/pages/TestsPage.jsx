@@ -21,6 +21,10 @@ import {
     startAttempt
 } from '../services/attemptsService';
 
+import {
+    useLocation
+} from 'react-router-dom';
+
 function TestsPage() {
 
     const navigate =
@@ -37,6 +41,9 @@ function TestsPage() {
 
     const [error, setError] =
         useState('');
+
+    const location =
+        useLocation();
     
     function showError(message) {
 
@@ -48,6 +55,13 @@ function TestsPage() {
     
         }, 10000);
     }
+
+    const filteredTests =
+        location.pathname === '/tests/completed'
+            ? tests.filter(
+                test => test.is_completed
+            )
+            : tests;
 
     async function handleStartTest(
         testId
@@ -118,12 +132,20 @@ function TestsPage() {
             <h1>Available Tests</h1>
 
             {
-                tests.length === 0
+                filteredTests.length === 0
                     ? (
-                        <p>No tests available</p>
-                    )
-                    : (
-                        tests.map(test => (
+
+                        <p>
+                            {
+                                location.pathname === '/tests/completed'
+                                    ? 'No completed tests yet'
+                                    : 'No tests available'
+                            }
+                        </p>
+
+                    ) : (
+
+                        filteredTests.map(test => (
 
                             <div key={test.id}>
 
