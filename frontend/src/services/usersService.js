@@ -20,3 +20,14 @@ export async function updateProfile(data) {
 
     return response.data;
 }
+
+export async function changePassword(data) {
+
+    const response =
+        await api.put(
+            '/users/password',
+            data
+        );
+
+    return response.data;
+}

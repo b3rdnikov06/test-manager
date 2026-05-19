@@ -7,7 +7,8 @@ import {
 } from 'react';
 
 import {
-    updateProfile
+    updateProfile,
+    changePassword
 } from '../services/usersService';
 
 function ProfilePage() {
@@ -37,6 +38,31 @@ function ProfilePage() {
 
     const [error, setError] =
         useState('');
+
+    const [
+        currentPassword,
+        setCurrentPassword
+    ] = useState('');
+    
+    const [
+        newPassword,
+        setNewPassword
+    ] = useState('');
+    
+    const [
+        confirmPassword,
+        setConfirmPassword
+    ] = useState('');
+
+    const [
+        showProfileForm,
+        setShowProfileForm
+    ] = useState(false);
+    
+    const [
+        showPasswordForm,
+        setShowPasswordForm
+    ] = useState(false);
 
     async function handleSubmit(e) {
 
@@ -69,6 +95,41 @@ function ProfilePage() {
         }
     }
 
+    async function handlePasswordChange(e) {
+
+        e.preventDefault();
+    
+        try {
+    
+            setError('');
+            setMessage('');
+            
+            const data =
+                await changePassword({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                });
+    
+            setMessage(
+                'Password updated'
+            );
+
+            login(data.token);
+    
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+    
+        } catch (err) {
+    
+            setError(
+                err.response?.data?.error ||
+                'Failed to update password'
+            );
+        }
+    }
+
     return (
 
         <div>
@@ -77,64 +138,166 @@ function ProfilePage() {
                 My Profile
             </h1>
 
-            <form onSubmit={handleSubmit}>
+            {
+                !showProfileForm && (
 
-                <div>
-
-                    <input
-                        type="text"
-                        placeholder="First name"
-                        value={firstName}
-                        onChange={e =>
-                            setFirstName(
-                                e.target.value
-                            )
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowProfileForm(true)
                         }
-                    />
+                    >
+                        Edit Profile
+                    </button>
+                )
+            }
 
-                </div>
+            {
+                showProfileForm && (
 
-                <br />
+                    <form onSubmit={handleSubmit}>
 
-                <div>
+                        <div>
 
-                    <input
-                        type="text"
-                        placeholder="Last name"
-                        value={lastName}
-                        onChange={e =>
-                            setLastName(
-                                e.target.value
-                            )
+                            <input
+                                type="text"
+                                placeholder="First name"
+                                value={firstName}
+                                onChange={e =>
+                                    setFirstName(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                        </div>
+
+                        <br />
+
+                        <div>
+
+                            <input
+                                type="text"
+                                placeholder="Last name"
+                                value={lastName}
+                                onChange={e =>
+                                    setLastName(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                        </div>
+
+                        <br />
+
+                        <div>
+
+                            <input
+                                type="text"
+                                placeholder="Avatar URL"
+                                value={avatar}
+                                onChange={e =>
+                                    setAvatar(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                        </div>
+
+                        <br />
+
+                        <button type="submit">
+                            Save Changes
+                        </button>
+
+                    </form>
+                )
+            }
+
+            <hr />
+
+            {
+                !showPasswordForm && (
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowPasswordForm(true)
                         }
-                    />
+                    >
+                        Change Password
+                    </button>
+                )
+            }
 
-                </div>
+            {
+                showPasswordForm && (
 
-                <br />
+                    <form onSubmit={handlePasswordChange}>
 
-                <div>
+                        <div>
 
-                    <input
-                        type="text"
-                        placeholder="Avatar URL"
-                        value={avatar}
-                        onChange={e =>
-                            setAvatar(
-                                e.target.value
-                            )
-                        }
-                    />
+                            <input
+                                type="password"
+                                placeholder="Current password"
+                                value={currentPassword}
+                                onChange={e =>
+                                    setCurrentPassword(
+                                        e.target.value
+                                    )
+                                }
+                            />
 
-                </div>
+                        </div>
 
-                <br />
+                        <br />
 
-                <button type="submit">
-                    Save Changes
-                </button>
+                        <div>
 
-            </form>
+                            <input
+                                type="password"
+                                placeholder="New password"
+                                value={newPassword}
+                                onChange={e =>
+                                    setNewPassword(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                        </div>
+
+                        <br />
+
+                        <div>
+
+                            <input
+                                type="password"
+                                placeholder="Confirm password"
+                                value={confirmPassword}
+                                onChange={e =>
+                                    setConfirmPassword(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                        </div>
+
+                        <br />
+
+                        <button type="submit">
+                            Change Password
+                        </button>
+
+                    </form>
+                )
+            }
+            
+            <br />
+            <br />
 
             <br />
 
