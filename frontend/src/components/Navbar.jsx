@@ -25,6 +25,12 @@ function Navbar() {
 
                         {' | '}
 
+                        <Link to="/profile">
+                            My Profile
+                        </Link>
+
+                        {' | '}
+
                         {
                             user?.role === 'teacher' && (
                                 <>
@@ -52,6 +58,29 @@ function Navbar() {
                                 </>
                             )
                         }
+
+                        <span>
+
+                            {
+                                user.avatar
+                                    ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt="Avatar"
+                                            width="30"
+                                            height="30"
+                                        />
+                                    )
+                                    : '👤'
+                            }
+
+                            {' '}
+
+                            {user.first_name}
+                            {' '}
+                            {user.last_name}
+
+                        </span>
 
                         <button
                             onClick={logout}

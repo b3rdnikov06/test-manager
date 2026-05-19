@@ -5,6 +5,9 @@ import {
     useState
 } from 'react';
 
+import { jwtDecode }
+    from 'jwt-decode';
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -25,15 +28,15 @@ export function AuthProvider({ children }) {
             try {
 
                 const payload =
-                    JSON.parse(
-                        atob(
-                            token.split('.')[1]
-                        )
-                    );
+                    jwtDecode(token);
 
                 setUser({
                     id: payload.id,
-                    role: payload.role
+                    role: payload.role,
+                    first_name: payload.first_name,
+                    last_name: payload.last_name,
+                    avatar: payload.avatar,
+                    email: payload.email
                 });
 
             } catch {
@@ -51,15 +54,15 @@ export function AuthProvider({ children }) {
         localStorage.setItem('token', token);
 
         const payload =
-            JSON.parse(
-                atob(
-                    token.split('.')[1]
-                )
-            );
+            jwtDecode(token);
 
         setUser({
             id: payload.id,
-            role: payload.role
+            role: payload.role,
+            first_name: payload.first_name,
+            last_name: payload.last_name,
+            avatar: payload.avatar,
+            email: payload.email
         });
     };
 

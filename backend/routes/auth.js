@@ -139,7 +139,12 @@ router.post('/login', (req, res) => {
             { 
                 id: user.id, 
                 role: user.role,
-                version: user.token_version
+                version: user.token_version,
+        
+                first_name: user.first_name,
+                last_name: user.last_name,
+                avatar: user.avatar,
+                email: user.email
             },
             'secret_key',
             { expiresIn: '1h' }

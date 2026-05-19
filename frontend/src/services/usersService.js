@@ -9,3 +9,14 @@ export async function getStudents() {
 
     return response.data;
 }
+
+export async function updateProfile(data) {
+
+    const response =
+        await api.put(
+            '/users/profile',
+            data
+        );
+
+    return response.data;
+}

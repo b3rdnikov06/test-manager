@@ -19,6 +19,7 @@ import TestResultsPage from '../pages/TestResultsPage';
 import ViewTestPage from '../pages/ViewTestPage';
 import StudentsPage from '../pages/StudentsPage';
 import StudentResultsPage from '../pages/StudentResultsPage';
+import ProfilePage from '../pages/ProfilePage';
 
 function AppRouter() {
     return (
@@ -158,6 +159,17 @@ function AppRouter() {
                         >
                             <MainLayout>
                                 <StudentResultsPage />
+                            </MainLayout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <MainLayout>
+                                <ProfilePage />
                             </MainLayout>
                         </ProtectedRoute>
                     }
