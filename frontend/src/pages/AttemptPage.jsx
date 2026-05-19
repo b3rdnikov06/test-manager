@@ -54,6 +54,18 @@ function AttemptPage() {
 
                 setData(result);
 
+                const savedAnswers =
+                    sessionStorage.getItem(
+                        `attempt_${id}_answers`
+                    );
+
+                if (savedAnswers) {
+
+                    setAnswers(
+                        JSON.parse(savedAnswers)
+                    );
+                }
+
             } catch (err) {
 
                 setError(
@@ -130,6 +142,21 @@ function AttemptPage() {
             clearInterval(interval);
     
     }, [data, isSubmitting]);
+
+    useEffect(() => {
+
+        if (
+            Object.keys(answers).length === 0
+        ) {
+            return;
+        }
+    
+        sessionStorage.setItem(
+            `attempt_${id}_answers`,
+            JSON.stringify(answers)
+        );
+    
+    }, [answers, id]);
 
     function handleAnswer(
         question,
@@ -216,6 +243,10 @@ function AttemptPage() {
             }
     
             await submitAttempt(id);
+
+            sessionStorage.removeItem(
+                `attempt_${id}_answers`
+            );
     
             navigate(
                 `/results/${id}`
@@ -250,6 +281,20 @@ function AttemptPage() {
                 : ''
         }${secs}`;
     }
+
+    const answeredQuestions =
+    data?.questions.filter(question => {
+
+        const answer =
+            answers[question.id];
+
+        if (question.type === 'multiple') {
+            return answer?.length > 0;
+        }
+
+        return Boolean(answer);
+
+    }).length || 0;
 
     if (loading) {
         return <p>Loading...</p>;
@@ -330,6 +375,24 @@ function AttemptPage() {
                 {data.test.time_limit}
                 {' '}
                 min
+            </p>
+
+            <p>
+
+                Answered
+                {' '}
+
+                {answeredQuestions}
+
+                {' '}
+                of
+                {' '}
+
+                {data.questions.length}
+
+                {' '}
+                questions
+
             </p>
 
             <hr />
@@ -423,7 +486,10 @@ function AttemptPage() {
             <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={
+                    isSubmitting ||
+                    answeredQuestions === 0
+                }
             >
                 {
                     isSubmitting
