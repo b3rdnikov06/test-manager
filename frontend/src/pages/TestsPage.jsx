@@ -8,7 +8,8 @@ import {
 } from '../services/testsService';
 
 import {
-    useNavigate
+    useNavigate,
+    useSearchParams
 } from 'react-router-dom';
 
 import {
@@ -20,10 +21,6 @@ import ErrorToast from '../components/ErrorToast';
 import {
     startAttempt
 } from '../services/attemptsService';
-
-import {
-    useLocation
-} from 'react-router-dom';
 
 function TestsPage() {
 
@@ -41,9 +38,12 @@ function TestsPage() {
 
     const [error, setError] =
         useState('');
-
-    const location =
-        useLocation();
+    
+    const [searchParams, setSearchParams] =
+        useSearchParams();
+    
+    const status =
+        searchParams.get('status');
     
     function showError(message) {
 
@@ -55,13 +55,6 @@ function TestsPage() {
     
         }, 10000);
     }
-
-    const filteredTests =
-        location.pathname === '/tests/completed'
-            ? tests.filter(
-                test => test.is_completed
-            )
-            : tests;
 
     async function handleStartTest(
         testId
@@ -115,6 +108,19 @@ function TestsPage() {
 
     }, []);
 
+    const filteredTests =
+    status === 'completed'
+        ? tests.filter(
+            test => test.is_completed
+        )
+        : status === 'progress'
+            ? tests.filter(
+                test =>
+                    test.attempt_id &&
+                    !test.is_completed
+            )
+            : tests;
+
     if (loading) {
         return <p>Loading tests...</p>;
     }
@@ -131,15 +137,54 @@ function TestsPage() {
 
             <h1>Available Tests</h1>
 
+            <div>
+
+            <button
+                type="button"
+                onClick={() =>
+                    setSearchParams({})
+                }
+            >
+                All
+            </button>
+
+            <button
+                type="button"
+                onClick={() =>
+                    setSearchParams({
+                        status: 'completed'
+                    })
+                }
+            >
+                Completed
+            </button>
+
+            <button
+                type="button"
+                onClick={() =>
+                    setSearchParams({
+                        status: 'progress'
+                    })
+                }
+            >
+                In Progress
+            </button>
+
+        </div>
+
+        <hr />
+
             {
                 filteredTests.length === 0
                     ? (
 
                         <p>
                             {
-                                location.pathname === '/tests/completed'
+                                status === 'completed'
                                     ? 'No completed tests yet'
-                                    : 'No tests available'
+                                    : status === 'progress'
+                                        ? 'No tests in progress'
+                                        : 'No tests available'
                             }
                         </p>
 
@@ -152,6 +197,21 @@ function TestsPage() {
                                 <h3>
                                     {test.title}
                                 </h3>
+
+                                <p>
+
+                                    Status:
+                                    {' '}
+
+                                    {
+                                        !test.attempt_id
+                                            ? 'Not Started'
+                                            : test.is_completed
+                                                ? 'Completed'
+                                                : 'In Progress'
+                                    }
+
+                                </p>
 
                                 <p>
                                     {test.description}
