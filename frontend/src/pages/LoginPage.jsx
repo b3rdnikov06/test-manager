@@ -97,6 +97,13 @@ function LoginPage() {
                 Register
             </Link>
 
+            <br />
+            <br />
+
+            <Link to="/forgot-password">
+                Forgot password?
+            </Link>
+
             {
                 error &&
                 <p>{error}</p>

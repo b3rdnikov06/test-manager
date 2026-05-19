@@ -31,3 +31,14 @@ export async function changePassword(data) {
 
     return response.data;
 }
+
+export async function resetPassword(data) {
+
+    const response =
+        await api.put(
+            '/users/reset-password',
+            data
+        );
+
+    return response.data;
+}

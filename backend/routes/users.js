@@ -240,4 +240,95 @@ router.put('/password', auth, async (req, res) => {
     );
 });
 
+// PUT /users/reset-password
+router.put('/reset-password', async (req, res) => {
+
+    const {
+        email,
+        new_password
+    } = req.body;
+
+    if (
+        !email ||
+        !new_password
+    ) {
+        return res.status(400).json({
+            error: 'All fields are required'
+        });
+    }
+
+    if (new_password.length < 8) {
+        return res.status(400).json({
+            error: 'Password must contain at least 8 characters'
+        });
+    }
+
+    const query = `
+        SELECT id
+        FROM users
+        WHERE email = ?
+    `;
+
+    db.query(
+        query,
+        [email],
+        async (err, result) => {
+
+            if (err) {
+
+                console.error(err);
+
+                return res.status(500).json({
+                    error: 'Internal server error'
+                });
+            }
+
+            const user = result[0];
+
+            if (!user) {
+                return res.status(404).json({
+                    error: 'User not found'
+                });
+            }
+
+            const hashedPassword =
+                await bcrypt.hash(
+                    new_password,
+                    10
+                );
+
+            const updateQuery = `
+                UPDATE users
+                SET
+                    password_hash = ?,
+                    token_version = token_version + 1
+                WHERE id = ?
+            `;
+
+            db.query(
+                updateQuery,
+                [
+                    hashedPassword,
+                    user.id
+                ],
+                (err) => {
+
+                    if (err) {
+
+                        console.error(err);
+
+                        return res.status(500).json({
+                            error: 'Internal server error'
+                        });
+                    }
+
+                    res.json({
+                        message: 'Password reset successful'
+                    });
+                }
+            );
+        }
+    );
+});
+
 module.exports = router;

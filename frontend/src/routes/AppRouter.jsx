@@ -20,11 +20,19 @@ import ViewTestPage from '../pages/ViewTestPage';
 import StudentsPage from '../pages/StudentsPage';
 import StudentResultsPage from '../pages/StudentResultsPage';
 import ProfilePage from '../pages/ProfilePage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 
 function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
+
+                 <Route
+                    path="/forgot-password"
+                    element={
+                        <ForgotPasswordPage />
+                    }
+                />
 
                 <Route
                     path="/register"
