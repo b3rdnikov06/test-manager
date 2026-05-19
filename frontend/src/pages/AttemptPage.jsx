@@ -335,12 +335,12 @@ function AttemptPage() {
             <hr />
 
             {
-                data.questions.map(question => (
+                data.questions.map((question, index) => (
 
                     <div key={question.id}>
 
                         <h3>
-                            {question.order_index + 1}.
+                            {index + 1}.
                             {' '}
                             {question.text}
                         </h3>
