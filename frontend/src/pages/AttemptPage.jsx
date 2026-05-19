@@ -43,6 +43,17 @@ function AttemptPage() {
     const [isSubmitting, setIsSubmitting] =
         useState(false);
 
+    function showError(message) {
+
+        setError(message);
+    
+        setTimeout(() => {
+    
+            setError('');
+    
+        }, 10000);
+    }
+
     useEffect(() => {
 
         async function fetchAttempt() {
@@ -141,7 +152,7 @@ function AttemptPage() {
         return () =>
             clearInterval(interval);
     
-    }, [data, isSubmitting]);
+    }, [data, isSubmitting, navigate]);
 
     useEffect(() => {
 

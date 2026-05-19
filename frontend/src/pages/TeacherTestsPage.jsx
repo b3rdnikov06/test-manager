@@ -33,6 +33,17 @@ function TeacherTestsPage() {
 
     const navigate =
         useNavigate();
+    
+    function showError(message) {
+
+        setError(message);
+    
+        setTimeout(() => {
+    
+            setError('');
+    
+        }, 10000);
+    }
 
     useEffect(() => {
 

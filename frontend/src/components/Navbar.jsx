@@ -1,6 +1,5 @@
 import {
     Link,
-    useNavigate
 } from 'react-router-dom';
 
 import { useAuth }
@@ -12,16 +11,6 @@ function Navbar() {
         user,
         logout
     } = useAuth();
-
-    const navigate =
-        useNavigate();
-
-    function handleLogout() {
-
-        logout();
-
-        navigate('/login');
-    }
 
     return (
         <nav>
