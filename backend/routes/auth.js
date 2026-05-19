@@ -10,9 +10,21 @@ router.post('/register', async (req, res) => {
 
     try {
 
-        const { email, password, role } = req.body;
+        const {
+            first_name,
+            last_name,
+            email,
+            password,
+            role
+        } = req.body;
 
-        if (!email || !password || !role) {
+        if (
+            !first_name ||
+            !last_name ||
+            !email ||
+            !password ||
+            !role
+        ) {
             return res.status(400).json({
                 error: 'All fields are required'
             });
@@ -45,16 +57,24 @@ router.post('/register', async (req, res) => {
 
         const query = `
             INSERT INTO users (
+                first_name,
+                last_name,
                 email,
                 password_hash,
                 role
             )
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
         `;
 
         db.query(
             query,
-            [safeEmail, hashedPassword, role],
+            [
+                first_name.trim(),
+                last_name.trim(),
+                safeEmail,
+                hashedPassword,
+                role
+            ],
             (err) => {
 
                 if (err) {

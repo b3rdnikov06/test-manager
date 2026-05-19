@@ -33,6 +33,12 @@ function RegisterPage() {
 
     const [error, setError] =
         useState('');
+    
+    const [firstName, setFirstName] =
+        useState('');
+    
+    const [lastName, setLastName] =
+        useState('');
 
     async function handleSubmit(e) {
 
@@ -43,6 +49,8 @@ function RegisterPage() {
             setError('');
 
             await register({
+                first_name: firstName,
+                last_name: lastName,
                 email,
                 password,
                 role
@@ -69,6 +77,40 @@ function RegisterPage() {
             <form
                 onSubmit={handleSubmit}
             >
+
+                <div>
+
+                <input
+                    type="text"
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={e =>
+                        setFirstName(
+                            e.target.value
+                        )
+                    }
+                />
+
+                </div>
+
+                <br />
+
+                <div>
+
+                <input
+                    type="text"
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={e =>
+                        setLastName(
+                            e.target.value
+                        )
+                    }
+                />
+
+                </div>
+
+                <br />
 
                 <div>
 
