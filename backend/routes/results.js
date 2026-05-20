@@ -234,6 +234,9 @@ router.get('/tests/:id', auth, checkRole('teacher'), (req, res) => {
             SELECT
                 a.id AS attempt_id,
                 a.user_id,
+                u.first_name,
+                u.last_name,
+                u.avatar,
                 a.started_at,
                 a.finished_at,
                 r.score,
@@ -241,6 +244,8 @@ router.get('/tests/:id', auth, checkRole('teacher'), (req, res) => {
             FROM attempts a
             JOIN results r
                 ON a.id = r.attempt_id
+            JOIN users u
+                ON a.user_id = u.id
             WHERE a.test_id = ?
             ORDER BY a.started_at DESC
         `;
@@ -260,6 +265,12 @@ router.get('/tests/:id', auth, checkRole('teacher'), (req, res) => {
                 attempt_id: result.attempt_id,
 
                 user_id: result.user_id,
+
+                first_name: result.first_name,
+
+                last_name: result.last_name,
+
+                avatar: result.avatar,
 
                 started_at: result.started_at,
 
