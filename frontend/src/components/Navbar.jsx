@@ -25,6 +25,18 @@ function Navbar() {
 
                         {' | '}
 
+                        {
+                            user?.role === 'student' && (
+                                <>
+                                    <Link to={`/students/${user.id}`}>
+                                        My Results
+                                    </Link>
+
+                                    {' | '}
+                                </>
+                            )
+                        }
+
                         <Link to="/profile">
                             My Profile
                         </Link>

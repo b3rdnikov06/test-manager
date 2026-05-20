@@ -162,9 +162,7 @@ function AppRouter() {
                 <Route
                     path="/students/:id"
                     element={
-                        <ProtectedRoute
-                            role="teacher"
-                        >
+                        <ProtectedRoute>
                             <MainLayout>
                                 <StudentResultsPage />
                             </MainLayout>

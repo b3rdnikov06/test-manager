@@ -393,14 +393,51 @@ router.get('/student/:id', auth, (req, res) => {
                 };
             });
 
+            const completed_tests =
+                formattedResults.length;
+
+            const scores =
+                formattedResults.map(
+                    attempt => attempt.percentage
+                );
+
+            const average_score =
+                scores.length
+                    ? Math.round(
+                        scores.reduce(
+                            (sum, score) =>
+                                sum + score,
+                            0
+                        ) / scores.length
+                    )
+                    : 0;
+
+            const best_score =
+                scores.length
+                    ? Math.max(...scores)
+                    : 0;
+
+            const worst_score =
+                scores.length
+                    ? Math.min(...scores)
+                    : 0;
+
             res.json({
 
                 user_id: user.id,
-
+            
                 email: user.email,
-
+            
                 role: user.role,
-
+            
+                completed_tests,
+            
+                average_score,
+            
+                best_score,
+            
+                worst_score,
+            
                 attempts: formattedResults
             });
         });

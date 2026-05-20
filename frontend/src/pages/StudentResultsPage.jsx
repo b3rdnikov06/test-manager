@@ -21,7 +21,7 @@ function StudentResultsPage() {
         useNavigate();
 
     const [results, setResults] =
-        useState([]);
+        useState(null);
 
     const [loading, setLoading] =
         useState(true);
@@ -39,7 +39,7 @@ function StudentResultsPage() {
                     await getStudentResults(id);
 
 
-                setResults(data.attempts || []);
+                setResults(data);
 
             } catch (err) {
 
@@ -73,9 +73,56 @@ function StudentResultsPage() {
                 Student Results
             </h1>
 
+            <hr />
+
+            <h2>
+                Statistics
+            </h2>
+
+            <p>
+
+                Completed tests:
+                {' '}
+
+                {results.completed_tests}
+
+            </p>
+
+            <p>
+
+                Average score:
+                {' '}
+
+                {results.average_score}
+                %
+
+            </p>
+
+            <p>
+
+                Best score:
+                {' '}
+
+                {results.best_score}
+                %
+
+            </p>
+
+            <p>
+
+                Worst score:
+                {' '}
+
+                {results.worst_score}
+                %
+
+            </p>
+
+            <hr />
+
             {
 
-                results.length === 0
+                results.attempts.length === 0
                 ? (
 
                     <p>
@@ -84,7 +131,7 @@ function StudentResultsPage() {
 
                 ) : (
 
-                results.map(result => (
+                results.attempts.map(result => (
 
                     <div
                         key={result.attempt_id}
