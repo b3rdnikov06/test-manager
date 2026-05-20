@@ -1,6 +1,6 @@
 # Database Design
 
-![ER-Diagram](./ER-diagram.svg)
+![ER-Diagram](./ER-diagram_two.svg)
 
 ## ER-Diagram description
 В базе данных используются следующие основные сущности:
