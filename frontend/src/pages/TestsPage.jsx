@@ -220,20 +220,25 @@ function TestsPage() {
                                     {test.title}
                                 </h3>
 
-                                <p>
+                                {
+                                    user?.role === 'student' && (
 
-                                    Status:
-                                    {' '}
+                                        <p>
 
-                                    {
-                                        !test.attempt_id
-                                            ? 'Not Started'
-                                            : test.is_completed
-                                                ? 'Completed'
-                                                : 'In Progress'
-                                    }
+                                            Status:
+                                            {' '}
 
-                                </p>
+                                            {
+                                                !test.attempt_id
+                                                    ? 'Not Started'
+                                                    : test.is_completed
+                                                        ? 'Completed'
+                                                        : 'In Progress'
+                                            }
+
+                                        </p>
+                                    )
+                                }
 
                                 <p>
                                     {test.description}

@@ -73,10 +73,34 @@ function StudentsPage() {
 
                     <div key={student.id}>
 
+                        {
+                            student.avatar
+                                ? (
+
+                                    <img
+                                        src={student.avatar}
+                                        alt="Avatar"
+                                        width="80"
+                                        height="80"
+                                    />
+
+                                ) : (
+
+                                    <div>
+                                        👤
+                                    </div>
+                                )
+                        }
+
                         <p>
-                            ID:
+
+                            Name:
                             {' '}
-                            {student.id}
+
+                            {student.first_name}
+                            {' '}
+                            {student.last_name}
+
                         </p>
 
                         <p>

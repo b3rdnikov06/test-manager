@@ -16,7 +16,10 @@ router.get(
         const query = `
             SELECT
                 id,
-                email
+                first_name,
+                last_name,
+                email,
+                avatar
             FROM users
             WHERE role = 'student'
             ORDER BY id
