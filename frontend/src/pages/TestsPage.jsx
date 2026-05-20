@@ -119,6 +119,10 @@ function TestsPage() {
                     test.attempt_id &&
                     !test.is_completed
             )
+        : status === 'not-started'
+            ? tests.filter(
+                test => !test.attempt_id
+            )
             : tests;
 
     if (loading) {
@@ -137,40 +141,56 @@ function TestsPage() {
 
             <h1>Available Tests</h1>
 
-            <div>
+            {
+                user?.role === 'student' && (
 
-            <button
-                type="button"
-                onClick={() =>
-                    setSearchParams({})
-                }
-            >
-                All
-            </button>
+                    <div>
 
-            <button
-                type="button"
-                onClick={() =>
-                    setSearchParams({
-                        status: 'completed'
-                    })
-                }
-            >
-                Completed
-            </button>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setSearchParams({})
+                        }
+                    >
+                        All
+                    </button>
 
-            <button
-                type="button"
-                onClick={() =>
-                    setSearchParams({
-                        status: 'progress'
-                    })
-                }
-            >
-                In Progress
-            </button>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setSearchParams({
+                                status: 'completed'
+                            })
+                        }
+                    >
+                        Completed
+                    </button>
 
-        </div>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setSearchParams({
+                                status: 'progress'
+                            })
+                        }
+                    >
+                        In Progress
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setSearchParams({
+                                status: 'not-started'
+                            })
+                        }
+                    >
+                        Not Started
+                    </button>
+
+                </div>
+                )
+            }
 
         <hr />
 
@@ -184,7 +204,9 @@ function TestsPage() {
                                     ? 'No completed tests yet'
                                     : status === 'progress'
                                         ? 'No tests in progress'
-                                        : 'No tests available'
+                                        : status === 'not-started'
+                                            ? 'No not started tests'
+                                            : 'No tests available'
                             }
                         </p>
 
