@@ -300,7 +300,13 @@ router.get('/student/:id', auth, (req, res) => {
     }
 
     const userQuery = `
-        SELECT id, email, role
+        SELECT
+            id,
+            first_name,
+            last_name,
+            email,
+            avatar,
+            role
         FROM users
         WHERE id = ?
     `;
@@ -425,6 +431,12 @@ router.get('/student/:id', auth, (req, res) => {
             res.json({
 
                 user_id: user.id,
+
+                first_name: user.first_name,
+
+                last_name: user.last_name,
+            
+                avatar: user.avatar,
             
                 email: user.email,
             

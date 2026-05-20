@@ -73,6 +73,46 @@ function StudentResultsPage() {
                 Student Results
             </h1>
 
+            <p>
+
+            {
+                results.avatar
+                    ? (
+
+                        <img
+                            src={results.avatar}
+                            alt="Avatar"
+                            width="80"
+                            height="80"
+                        />
+
+                    ) : (
+
+                        <div>
+                            👤
+                        </div>
+                    )
+            }
+
+            </p>
+
+            <p>
+
+                Name:
+                {' '}
+
+                {results.first_name}
+                {' '}
+                {results.last_name}
+
+            </p>
+
+            <p>
+                Email:
+                {' '}
+                {results.email}
+            </p>
+
             <hr />
 
             <h2>
@@ -162,6 +202,17 @@ function StudentResultsPage() {
                             {' '}
                             {result.percentage}
                             %
+                        </p>
+
+                        <p>
+
+                            Duration:
+                            {' '}
+
+                            {result.duration_minutes}
+                            {' '}
+                            min
+
                         </p>
 
                         <button
