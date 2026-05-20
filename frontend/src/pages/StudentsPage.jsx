@@ -69,60 +69,70 @@ function StudentsPage() {
             </h1>
 
             {
-                students.map(student => (
 
-                    <div key={student.id}>
+                students.length === 0
+                ? (
 
-                        {
-                            student.avatar
-                                ? (
+                    <p>
+                        No students yet
+                    </p>
 
-                                    <img
-                                        src={student.avatar}
-                                        alt="Avatar"
-                                        width="80"
-                                        height="80"
-                                    />
+                ) : (
+                    students.map(student => (
 
-                                ) : (
+                        <div key={student.id}>
 
-                                    <div>
-                                        👤
-                                    </div>
-                                )
-                        }
+                            {
+                                student.avatar
+                                    ? (
 
-                        <p>
+                                        <img
+                                            src={student.avatar}
+                                            alt="Avatar"
+                                            width="80"
+                                            height="80"
+                                        />
 
-                            Name:
-                            {' '}
+                                    ) : (
 
-                            {student.first_name}
-                            {' '}
-                            {student.last_name}
-
-                        </p>
-
-                        <p>
-                            Email:
-                            {' '}
-                            {student.email}
-                        </p>
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                navigate(
-                                    `/students/${student.id}`
-                                )
+                                        <div>
+                                            👤
+                                        </div>
+                                    )
                             }
-                        >
-                            View Results
-                        </button>
 
-                        <hr />
+                            <p>
 
-                    </div>
+                                Name:
+                                {' '}
+
+                                {student.first_name}
+                                {' '}
+                                {student.last_name}
+
+                            </p>
+
+                            <p>
+                                Email:
+                                {' '}
+                                {student.email}
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        `/students/${student.id}`
+                                    )
+                                }
+                            >
+                                View Results
+                            </button>
+
+                            <hr />
+
+                        </div>
+                    )
                 ))
             }
 
