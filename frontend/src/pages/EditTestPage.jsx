@@ -50,6 +50,9 @@ function EditTestPage() {
     const [error, setError] =
         useState('');
 
+    const [success, setSuccess] =
+        useState('');
+
     const [
         questionText,
         setQuestionText
@@ -84,6 +87,17 @@ function EditTestPage() {
             setError('');
     
         }, 10000);
+    }
+
+    function showSuccess(message) {
+
+        setSuccess(message);
+    
+        setTimeout(() => {
+    
+            setSuccess('');
+    
+        }, 5000);
     }
 
     useEffect(() => {
@@ -144,6 +158,10 @@ function EditTestPage() {
     
             setQuestions(
                 updated.questions || []
+            );
+
+            showSuccess(
+                'Test successfully saved'
             );
 
             setTestData(updated);
@@ -215,10 +233,18 @@ function EditTestPage() {
             setQuestions(
                 updated.questions || []
             );
+
+            showSuccess(
+                'Test successfully saved'
+            );
     
             setEditingQuestionId(null);
     
             setEditingQuestionText('');
+
+            showSuccess(
+                'Question successfully updated'
+            );
     
         } catch (err) {
     
@@ -250,6 +276,10 @@ function EditTestPage() {
             setQuestions(
                 updated.questions || []
             );
+
+            showSuccess(
+                'Test successfully saved'
+            );
     
         } catch (err) {
     
@@ -278,6 +308,10 @@ function EditTestPage() {
             setQuestions(
                 updated.questions || []
             );
+
+            showSuccess(
+                'Test successfully saved'
+            );
     
         } catch (err) {
     
@@ -305,6 +339,10 @@ function EditTestPage() {
     
             setQuestions(
                 updated.questions || []
+            );
+
+            showSuccess(
+                'Test successfully saved'
             );
     
         } catch (err) {
@@ -345,6 +383,10 @@ function EditTestPage() {
             setQuestions(
                 updated.questions || []
             );
+
+            showSuccess(
+                'Test successfully saved'
+            );
     
             setAnswerInputs(prev => ({
                 ...prev,
@@ -380,6 +422,10 @@ function EditTestPage() {
             setQuestions(
                 updated.questions || []
             );
+
+            showSuccess(
+                'Test successfully saved'
+            );
     
         } catch (err) {
     
@@ -396,38 +442,40 @@ function EditTestPage() {
     }
 
     return (
-        <div>
 
+        <div className="editor-page">
+    
             <ErrorToast
                 message={error}
                 onClose={() =>
                     setError('')
                 }
             />
-
-            <h1>
-
-                Test Editor
-
-                {
-                !testData?.is_published && (
-
-                    <button
-                        type="button"
-                        onClick={
-                            handlePublishTest
-                        }
-                    >
-                        Publish Test
-                    </button>
-                )
-            }
-
-            </h1>
-
-            <div>
-
+    
+            <ErrorToast
+                message={success}
+                onClose={() =>
+                    setSuccess('')
+                }
+                type="success"
+            />
+    
+            <div className="editor-header">
+    
+                <h1 className="page-title">
+                    Test Editor
+                </h1>
+    
+            </div>
+    
+            <div className="editor-card">
+    
+                <h2 className="editor-section-title">
+                    Test Settings
+                </h2>
+    
                 <input
+                    className="input"
                     type="text"
                     value={title}
                     onChange={e =>
@@ -437,14 +485,9 @@ function EditTestPage() {
                     }
                     placeholder="Test title"
                 />
-
-            </div>
-
-            <br />
-
-            <div>
-
+    
                 <textarea
+                    className="input"
                     value={description}
                     onChange={e =>
                         setDescription(
@@ -453,14 +496,9 @@ function EditTestPage() {
                     }
                     placeholder="Description"
                 />
-
-            </div>
-
-            <br />
-
-            <div>
-
+    
                 <input
+                    className="input"
                     type="number"
                     min="5"
                     max="30"
@@ -471,32 +509,35 @@ function EditTestPage() {
                         )
                     }
                 />
-
+    
+                <button
+                    className="btn-primary"
+                    type="button"
+                    onClick={handleUpdateTest}
+                >
+                    Save Test
+                </button>
+    
             </div>
-
-            <br />
-
-            <button
-                type="button"
-                onClick={handleUpdateTest}
-            >
-                Save Test
-            </button>
-
-            <br />
-            <br />
-
+    
             {
                 !testData?.is_published && (
-
-                    <>
+    
+                    <div className="editor-card">
+    
+                        <h2 className="editor-section-title">
+                            Add Question
+                        </h2>
+    
                         <form
+                            className="editor-form"
                             onSubmit={
                                 handleCreateQuestion
                             }
                         >
-
+    
                             <input
+                                className="input"
                                 type="text"
                                 placeholder="Question text"
                                 value={questionText}
@@ -506,8 +547,9 @@ function EditTestPage() {
                                     )
                                 }
                             />
-
+    
                             <select
+                                className="input"
                                 value={questionType}
                                 onChange={e =>
                                     setQuestionType(
@@ -515,41 +557,50 @@ function EditTestPage() {
                                     )
                                 }
                             >
+    
                                 <option value="single">
                                     Single
                                 </option>
-
+    
                                 <option value="multiple">
                                     Multiple
                                 </option>
-
+    
                                 <option value="text">
                                     Text
                                 </option>
+    
                             </select>
-
-                            <button type="submit">
+    
+                            <button
+                                className="btn-primary"
+                                type="submit"
+                            >
                                 Add Question
                             </button>
-
+    
                         </form>
-
-                        <br />
-                    </>
+    
+                    </div>
                 )
             }
-
+    
             {
-                questions.map(question => (
-
-                    <div key={question.id}>
+                questions.map((question, index) => (
+    
+                    <div
+                        key={question.id}
+                        className="editor-question-card"
+                    >
+    
                         {
                             editingQuestionId ===
                             question.id ? (
-                            
-                                <div>
-                            
+    
+                                <div className="editor-form">
+    
                                     <input
+                                        className="input"
                                         type="text"
                                         value={
                                             editingQuestionText
@@ -560,8 +611,9 @@ function EditTestPage() {
                                             )
                                         }
                                     />
-                            
+    
                                     <button
+                                        className="btn-primary"
                                         type="button"
                                         onClick={() =>
                                             handleUpdateQuestion(
@@ -571,98 +623,136 @@ function EditTestPage() {
                                     >
                                         Save
                                     </button>
-                            
+    
                                 </div>
-                            
+    
                             ) : (
-
-                                <div>
-
-                                    <h3>
-                                        {question.text}
-                                    </h3>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            startEditingQuestion(
-                                                question
-                                            )
-                                        }
-                                    >
-                                        Edit Question
-                                    </button>
-
-                                    {
-                                        !testData?.is_published && (
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    handleDeleteQuestion(
-                                                        question.id
-                                                    )
-                                                }
-                                            >
-                                                Delete Question
-                                            </button>
-                                        )
-                                    }
-
-                                </div>
-                            )
-                        }
-
-                        <p>
-                            Type:
-                            {' '}
-                            {question.type}
-                        </p>
-
-                        {
-                            question.answers.map(answer => (
-
-                            <div
-                                key={answer.id}
-                            >
-                                - {answer.text}
-                                {' '}
-                                (
-                                {
-                                    answer.is_correct
-                                        ? 'correct'
-                                        : 'wrong'
-                                }
-                                )
-
-                                {
-                                    !testData?.is_published && (
-
+    
+                                <div className="question-header">
+    
+                                    <div>
+    
+                                        <h3 className="editor-question-title">
+    
+                                            {index + 1}.
+                                            {' '}
+    
+                                            {question.text}
+    
+                                        </h3>
+    
+                                        <p className="card-description">
+    
+                                            Type:
+                                            {' '}
+    
+                                            {question.type}
+    
+                                        </p>
+    
+                                    </div>
+    
+                                    <div className="test-actions">
+    
                                         <button
+                                            className="btn-primary"
                                             type="button"
                                             onClick={() =>
-                                                handleDeleteAnswer(
-                                                    answer.id
+                                                startEditingQuestion(
+                                                    question
                                                 )
                                             }
                                         >
-                                            Delete Answer
+                                            Edit
                                         </button>
-                                    )
-                                }
-
-                            </div>
-                            ))
+    
+                                        {
+                                            !testData?.is_published && (
+    
+                                                <button
+                                                    className="btn-danger"
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteQuestion(
+                                                            question.id
+                                                        )
+                                                    }
+                                                >
+                                                    Delete
+                                                </button>
+                                            )
+                                        }
+    
+                                    </div>
+    
+                                </div>
+                            )
                         }
-
-                        <hr />
-
+    
+                        <div className="answers-list">
+    
+                            {
+                                question.answers.map(answer => (
+    
+                                    <div
+                                        key={answer.id}
+                                        className="editor-answer-item"
+                                    >
+    
+                                        <div>
+    
+                                            {answer.text}
+    
+                                            {' '}
+    
+                                            {
+                                                Boolean(
+                                                    answer.is_correct
+                                                ) && (
+    
+                                                    <span
+                                                        className="
+                                                            answer-tag
+                                                            correct-tag
+                                                        "
+                                                    >
+                                                        Correct
+                                                    </span>
+                                                )
+                                            }
+    
+                                        </div>
+    
+                                        {
+                                            !testData?.is_published && (
+    
+                                                <button
+                                                    className="btn-danger"
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteAnswer(
+                                                            answer.id
+                                                        )
+                                                    }
+                                                >
+                                                    Delete
+                                                </button>
+                                            )
+                                        }
+    
+                                    </div>
+                                ))
+                            }
+    
+                        </div>
+    
                         {
                             !testData?.is_published && (
-
-                                <div>
-
+    
+                                <div className="editor-form">
+    
                                     <input
+                                        className="input"
                                         type="text"
                                         placeholder="Answer text"
                                         value={
@@ -678,14 +768,12 @@ function EditTestPage() {
                                             )
                                         }
                                     />
-
+    
                                     {
                                         question.type !== 'text' && (
-
-                                            <label>
-
-                                                Correct
-
+    
+                                            <label className="editor-checkbox">
+    
                                                 <input
                                                     type="checkbox"
                                                     checked={
@@ -701,12 +789,15 @@ function EditTestPage() {
                                                         )
                                                     }
                                                 />
-
+    
+                                                Correct answer
+    
                                             </label>
                                         )
                                     }
-
+    
                                     <button
+                                        className="btn-primary"
                                         type="button"
                                         onClick={() =>
                                             handleCreateAnswer(
@@ -716,17 +807,34 @@ function EditTestPage() {
                                     >
                                         Add Answer
                                     </button>
-
+    
                                 </div>
                             )
                         }
-
-                        <hr />
-
+    
                     </div>
                 ))
             }
-
+    
+            {
+                !testData?.is_published && (
+    
+                    <div className="editor-publish-section">
+    
+                        <button
+                            className="btn-primary"
+                            type="button"
+                            onClick={
+                                handlePublishTest
+                            }
+                        >
+                            Publish Test
+                        </button>
+    
+                    </div>
+                )
+            }
+    
         </div>
     );
 }

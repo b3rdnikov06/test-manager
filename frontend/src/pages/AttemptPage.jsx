@@ -30,13 +30,13 @@ function AttemptPage() {
 
     const [error, setError] =
         useState('');
-    
+
     const [answers, setAnswers] =
         useState({});
-    
+
     const navigate =
         useNavigate();
-    
+
     const [timeLeft, setTimeLeft] =
         useState(null);
 
@@ -46,11 +46,11 @@ function AttemptPage() {
     function showError(message) {
 
         setError(message);
-    
+
         setTimeout(() => {
-    
+
             setError('');
-    
+
         }, 10000);
     }
 
@@ -99,59 +99,59 @@ function AttemptPage() {
         if (!data) {
             return;
         }
-    
+
         const started =
             new Date(
                 data.test.started_at
             );
-    
+
         const limitMs =
             data.test.time_limit
             * 60
             * 1000;
-    
+
         let interval;
-    
+
         function updateTimer() {
-    
+
             const now =
                 new Date();
-    
+
             const elapsed =
                 now - started;
-    
+
             const remaining =
                 limitMs - elapsed;
-    
+
             if (remaining <= 0) {
-    
+
                 clearInterval(interval);
-    
+
                 setTimeLeft(0);
-    
+
                 navigate('/tests');
-    
+
                 return;
             }
-    
+
             setTimeLeft(
                 Math.floor(
                     remaining / 1000
                 )
             );
         }
-    
+
         updateTimer();
-    
+
         interval =
             setInterval(
                 updateTimer,
                 1000
             );
-    
+
         return () =>
             clearInterval(interval);
-    
+
     }, [data, isSubmitting, navigate]);
 
     useEffect(() => {
@@ -161,39 +161,39 @@ function AttemptPage() {
         ) {
             return;
         }
-    
+
         sessionStorage.setItem(
             `attempt_${id}_answers`,
             JSON.stringify(answers)
         );
-    
+
     }, [answers, id]);
 
     function handleAnswer(
         question,
         value
     ) {
-    
+
         if (question.type === 'multiple') {
-    
+
             const current =
                 answers[question.id] || [];
-    
+
             const updated =
                 current.includes(value)
                     ? current.filter(
                         id => id !== value
                     )
                     : [...current, value];
-    
+
             setAnswers(prev => ({
                 ...prev,
                 [question.id]: updated
             }));
-    
+
             return;
         }
-    
+
         setAnswers(prev => ({
             ...prev,
             [question.id]: value
@@ -210,67 +210,63 @@ function AttemptPage() {
         if (!confirmed) {
             return;
         }
-        
+
         setIsSubmitting(true);
 
         try {
-    
+
             for (const question of data.questions) {
-    
+
                 const value =
                     answers[question.id];
-    
+
                 if (!value) {
                     continue;
                 }
-    
+
                 if (question.type === 'text') {
-    
+
                     await saveAnswer(id, {
                         question_id: question.id,
                         text_answer: value
                     });
-    
+
                     continue;
                 }
-    
+
                 if (question.type === 'multiple') {
-    
+
                     for (const answerId of value) {
-    
+
                         await saveAnswer(id, {
                             question_id: question.id,
                             answer_id: answerId
                         });
                     }
-    
+
                     continue;
                 }
-    
+
                 await saveAnswer(id, {
                     question_id: question.id,
                     answer_id: value
                 });
             }
-    
+
             await submitAttempt(id);
 
             sessionStorage.removeItem(
                 `attempt_${id}_answers`
             );
-    
+
             navigate(
                 `/results/${id}`
             );
 
-            showError(
-                'Time limit exceeded'
-            );
-    
         } catch (err) {
 
             setIsSubmitting(false);
-        
+
             showError(
                 err.response?.data?.error ||
                 'Failed to submit test'
@@ -282,10 +278,10 @@ function AttemptPage() {
 
         const minutes =
             Math.floor(seconds / 60);
-    
+
         const secs =
             seconds % 60;
-    
+
         return `${minutes}:${
             secs < 10
                 ? '0'
@@ -294,50 +290,60 @@ function AttemptPage() {
     }
 
     const answeredQuestions =
-    data?.questions.filter(question => {
+        data?.questions.filter(question => {
 
-        const answer =
-            answers[question.id];
+            const answer =
+                answers[question.id];
 
-        if (question.type === 'multiple') {
-            return answer?.length > 0;
-        }
+            if (question.type === 'multiple') {
+                return answer?.length > 0;
+            }
 
-        return Boolean(answer);
+            return Boolean(answer);
 
-    }).length || 0;
+        }).length || 0;
 
     if (loading) {
-        return <p>Loading...</p>;
+
+        return (
+            <p>
+                Loading...
+            </p>
+        );
     }
 
     if (!data) {
+
         return (
 
-            <div>
-    
+            <div className="results-page">
+
                 <ErrorToast
                     message={error}
                     onClose={() =>
                         setError('')
                     }
                 />
-    
-                <h1>
-                    Attempt unavailable
-                </h1>
-    
-                <p>
-                    {error}
-                </p>
-    
+
+                <div className="empty-state">
+
+                    <h1>
+                        Attempt unavailable
+                    </h1>
+
+                    <p>
+                        {error}
+                    </p>
+
+                </div>
+
             </div>
         );
     }
 
     return (
 
-        <div>
+        <div className="attempt-page">
 
             <ErrorToast
                 message={error}
@@ -346,91 +352,111 @@ function AttemptPage() {
                 }
             />
 
-            <h1>
-                {data.test.title}
-            </h1>
+            <div className="attempt-header-card">
 
-            <p>
+                <div>
 
-                Warning:
-                {' '}
+                    <h1 className="page-title">
+                        {data.test.title}
+                    </h1>
 
-                answers will not be saved
-                automatically after the timer
-                expires. Finish the test
-                before time runs out.
-
-            </p>
-
-            {
-                timeLeft !== null && (
-
-                    <p>
-
-                        Time left:
-                        {' '}
-
-                        {formatTime(timeLeft)}
-
+                    <p className="card-description">
+                        {data.test.description}
                     </p>
-                )
-            }
 
-            <p>
-                {data.test.description}
-            </p>
+                </div>
 
-            <p>
-                Time limit:
-                {' '}
-                {data.test.time_limit}
-                {' '}
-                min
-            </p>
+                <div className="attempt-timer">
 
-            <p>
+                    <span className="attempt-timer-label">
+                        Time Left
+                    </span>
 
-                Answered
-                {' '}
+                    <span className="attempt-timer-value">
 
-                {answeredQuestions}
+                        {
+                            timeLeft !== null &&
+                            formatTime(timeLeft)
+                        }
 
-                {' '}
-                of
-                {' '}
+                    </span>
 
-                {data.questions.length}
+                </div>
 
-                {' '}
-                questions
+            </div>
 
-            </p>
+            <div className="attempt-progress-card">
 
-            <hr />
+                <div className="attempt-progress-top">
+
+                    <span>
+                        Progress
+                    </span>
+
+                    <span>
+
+                        {answeredQuestions}
+                        {' / '}
+                        {data.questions.length}
+
+                    </span>
+
+                </div>
+
+                <div className="attempt-progress-bar">
+
+                    <div
+                        className="attempt-progress-fill"
+                        style={{
+                            width: `${
+                                (
+                                    answeredQuestions
+                                    / data.questions.length
+                                ) * 100
+                            }%`
+                        }}
+                    />
+
+                </div>
+
+            </div>
 
             {
                 data.questions.map((question, index) => (
 
-                    <div key={question.id}>
+                    <div
+                        key={question.id}
+                        className="attempt-question-card"
+                    >
 
-                        <h3>
-                            {index + 1}.
-                            {' '}
-                            {question.text}
-                        </h3>
+                        <div className="question-header">
 
-                        <p>
-                            Type:
-                            {' '}
-                            {question.type}
-                        </p>
+                            <h3 className="editor-question-title">
+
+                                {index + 1}.
+                                {' '}
+
+                                {question.text}
+
+                            </h3>
+
+                            <div className="question-type">
+
+                                {question.type}
+
+                            </div>
+
+                        </div>
 
                         {
                             question.type === 'text'
                                 ? (
 
                                     <textarea
-                                        value={answers[question.id] || ''}
+                                        className="input"
+                                        value={
+                                            answers[question.id] || ''
+                                        }
 
                                         onChange={e =>
                                             handleAnswer(
@@ -442,72 +468,79 @@ function AttemptPage() {
 
                                 ) : (
 
-                                    question.answers.map(answer => (
+                                    <div className="answers-list">
 
-                                        <div
-                                            key={answer.id}
-                                        >
+                                        {
+                                            question.answers.map(answer => (
 
-                                            <label>
+                                                <label
+                                                    key={answer.id}
+                                                    className="attempt-answer-option"
+                                                >
 
-                                            <input
-                                                type={
-                                                    question.type === 'single'
-                                                        ? 'radio'
-                                                        : 'checkbox'
-                                                }
+                                                    <input
+                                                        type={
+                                                            question.type === 'single'
+                                                                ? 'radio'
+                                                                : 'checkbox'
+                                                        }
 
-                                                name={`question-${question.id}`}
+                                                        name={`question-${question.id}`}
 
-                                                checked={
-                                                    question.type === 'multiple'
-                                                        ? (
-                                                            answers[question.id]?.includes(answer.id)
-                                                            || false
-                                                        )
-                                                        : (
-                                                            answers[question.id] === answer.id
-                                                        )
-                                                }
+                                                        checked={
+                                                            question.type === 'multiple'
+                                                                ? (
+                                                                    answers[question.id]?.includes(answer.id)
+                                                                    || false
+                                                                )
+                                                                : (
+                                                                    answers[question.id] === answer.id
+                                                                )
+                                                        }
 
-                                                onChange={() =>
-                                                    handleAnswer(
-                                                        question,
-                                                        answer.id
-                                                    )
-                                                }
-                                            />
+                                                        onChange={() =>
+                                                            handleAnswer(
+                                                                question,
+                                                                answer.id
+                                                            )
+                                                        }
+                                                    />
 
-                                                {' '}
+                                                    <span>
+                                                        {answer.text}
+                                                    </span>
 
-                                                {answer.text}
+                                                </label>
+                                            ))
+                                        }
 
-                                            </label>
-
-                                        </div>
-                                    ))
+                                    </div>
                                 )
                         }
-
-                        <hr />
 
                     </div>
                 ))
             }
-            <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={
-                    isSubmitting ||
-                    answeredQuestions === 0
-                }
-            >
-                {
-                    isSubmitting
-                        ? 'Submitting...'
-                        : 'Submit Test'
-                }
-            </button>
+
+            <div className="attempt-submit-bar">
+
+                <button
+                    className="btn-primary"
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={
+                        isSubmitting ||
+                        answeredQuestions === 0
+                    }
+                >
+                    {
+                        isSubmitting
+                            ? 'Submitting...'
+                            : 'Submit Test'
+                    }
+                </button>
+
+            </div>
 
         </div>
     );

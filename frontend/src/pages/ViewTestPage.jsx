@@ -11,7 +11,8 @@ import {
     getFullTest
 } from '../services/testsService';
 
-import ErrorToast from '../components/ErrorToast';
+import ErrorToast
+    from '../components/ErrorToast';
 
 function ViewTestPage() {
 
@@ -26,15 +27,15 @@ function ViewTestPage() {
 
     const [error, setError] =
         useState('');
-    
+
     function showError(message) {
 
         setError(message);
-    
+
         setTimeout(() => {
-    
+
             setError('');
-    
+
         }, 10000);
     }
 
@@ -67,11 +68,17 @@ function ViewTestPage() {
     }, [id]);
 
     if (loading) {
-        return <p>Loading...</p>;
+
+        return (
+            <p>
+                Loading...
+            </p>
+        );
     }
 
     return (
-        <div>
+
+        <div className="results-page">
 
             <ErrorToast
                 message={error}
@@ -80,65 +87,126 @@ function ViewTestPage() {
                 }
             />
 
-            <h1>
-                {test.title}
-            </h1>
+            <div className="student-profile-card">
 
-            <p>
-                {test.description}
-            </p>
+                <div className="student-info">
 
-            <p>
-                Time limit:
-                {' '}
-                {test.time_limit}
-                {' '}
-                min
-            </p>
+                    <h1 className="page-title">
+                        {test.title}
+                    </h1>
 
-            <hr />
+                    <p>
+                        {test.description}
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div className="stats-grid">
+
+                <div className="stat-card">
+
+                    <span className="stat-label">
+                        Questions
+                    </span>
+
+                    <span className="stat-value">
+                        {test.questions.length}
+                    </span>
+
+                </div>
+
+                <div className="stat-card">
+
+                    <span className="stat-label">
+                        Time Limit
+                    </span>
+
+                    <span className="stat-value">
+                        {test.time_limit} min
+                    </span>
+
+                </div>
+
+            </div>
 
             {
-                test.questions.map(question => (
+                test.questions.map((question, index) => (
 
                     <div
                         key={question.id}
+                        className="question-card"
                     >
 
-                        <h3>
-                            {question.text}
-                        </h3>
+                        <div className="question-header">
 
-                        <p>
-                            Type:
-                            {' '}
-                            {question.type}
-                        </p>
+                            <h3 className="question-title">
 
-                        {
-                            question.answers.map(answer => (
+                                {index + 1}.
+                                {' '}
+                                {question.text}
 
-                                <div
-                                    key={answer.id}
-                                >
+                            </h3>
 
-                                    - {answer.text}
+                            <div className="question-type">
 
-                                    {' '}
+                                {question.type}
 
-                                    (
-                                    {
-                                        answer.is_correct
-                                            ? 'correct'
-                                            : 'wrong'
-                                    }
-                                    )
+                            </div>
 
-                                </div>
-                            ))
-                        }
+                        </div>
 
-                        <hr />
+                        <div className="answers-list">
+
+                            {
+                                question.answers.map(answer => (
+
+                                    <div
+                                        key={answer.id}
+                                        className={`
+                                            answer-option
+                                            ${
+                                                Boolean(answer.is_correct)
+                                                    ? 'correct-selected-answer'
+                                                    : ''
+                                            }
+                                        `}
+                                    >
+
+                                        <div className="answer-row">
+
+                                            <p className="answer-text">
+
+                                                {answer.text}
+
+                                            </p>
+
+                                            {
+                                                Boolean(answer.is_correct) && (
+
+                                                    <div className="answer-tags">
+
+                                                        <span
+                                                            className="
+                                                                answer-tag
+                                                                correct-tag
+                                                            "
+                                                        >
+                                                            Correct
+                                                        </span>
+
+                                                    </div>
+                                                )
+                                            }
+
+                                        </div>
+
+                                    </div>
+                                ))
+                            }
+
+                        </div>
 
                     </div>
                 ))

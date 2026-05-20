@@ -130,7 +130,8 @@ function TestsPage() {
     }
 
     return (
-        <div>
+
+        <div className="tests-page">
 
             <ErrorToast
                 message={error}
@@ -144,9 +145,10 @@ function TestsPage() {
             {
                 user?.role === 'student' && (
 
-                    <div>
+                    <div className="tests-filters">
 
                     <button
+                        className="filter-btn"
                         type="button"
                         onClick={() =>
                             setSearchParams({})
@@ -156,6 +158,7 @@ function TestsPage() {
                     </button>
 
                     <button
+                        className="filter-btn"
                         type="button"
                         onClick={() =>
                             setSearchParams({
@@ -167,6 +170,7 @@ function TestsPage() {
                     </button>
 
                     <button
+                        className="filter-btn"
                         type="button"
                         onClick={() =>
                             setSearchParams({
@@ -178,6 +182,7 @@ function TestsPage() {
                     </button>
 
                     <button
+                        className="filter-btn"
                         type="button"
                         onClick={() =>
                             setSearchParams({
@@ -191,8 +196,6 @@ function TestsPage() {
                 </div>
                 )
             }
-
-        <hr />
 
             {
                 filteredTests.length === 0
@@ -214,18 +217,24 @@ function TestsPage() {
 
                         filteredTests.map(test => (
 
-                            <div key={test.id}>
+                            <div
+                                key={test.id}
+                                className="test-card"
+                            >
 
-                                <h3>
+                                <h3 className="test-title">
+
+                                    {test.id}.
+                                    {' '}
+
                                     {test.title}
+
                                 </h3>
 
                                 {
                                     user?.role === 'student' && (
 
-                                        <p>
-
-                                            Status:
+                                        <p className="test-status">
                                             {' '}
 
                                             {
@@ -240,11 +249,11 @@ function TestsPage() {
                                     )
                                 }
 
-                                <p>
+                                <p className="test-description">
                                     {test.description}
                                 </p>
 
-                                <p>
+                                <p className="test-time">
                                     Time limit:
                                     {' '}
                                     {test.time_limit}
@@ -255,10 +264,11 @@ function TestsPage() {
                                 {
                                     test.is_published &&
                                     user?.role === 'teacher' && (
-
-                                        <div>
-
+                                
+                                        <div className="test-actions">
+                                
                                             <button
+                                                className="btn-primary"
                                                 type="button"
                                                 onClick={() =>
                                                     navigate(
@@ -268,8 +278,9 @@ function TestsPage() {
                                             >
                                                 View Results
                                             </button>
-
+                                
                                             <button
+                                                className="btn-primary"
                                                 type="button"
                                                 onClick={() =>
                                                     navigate(
@@ -279,7 +290,7 @@ function TestsPage() {
                                             >
                                                 View Test
                                             </button>
-
+                                
                                         </div>
                                     )
                                 }
@@ -290,6 +301,7 @@ function TestsPage() {
                                     !test.attempt_id && (
 
                                         <button
+                                            className="btn-primary"
                                             type="button"
                                             onClick={() =>
                                                 handleStartTest(
@@ -309,6 +321,7 @@ function TestsPage() {
                                     !Boolean(test.is_completed) && (
 
                                         <button
+                                            className="btn-primary"
                                             type="button"
                                             onClick={() =>
                                                 navigate(
@@ -327,6 +340,7 @@ function TestsPage() {
                                     Boolean(test.is_completed) && (
 
                                         <button
+                                            className="btn-primary"
                                             type="button"
                                             onClick={() =>
                                                 navigate(
@@ -338,8 +352,6 @@ function TestsPage() {
                                         </button>
                                     )
                                 }
-                                
-                                <hr />
 
                             </div>
                         ))

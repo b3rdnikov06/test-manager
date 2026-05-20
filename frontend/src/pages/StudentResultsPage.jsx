@@ -67,98 +67,109 @@ function StudentResultsPage() {
     }
 
     return (
-        <div>
 
-            <h1>
+        <div className="results-page">
+
+            <h1 className="page-title">
                 Student Results
             </h1>
 
-            <p>
+            <div className="student-profile-card">
 
-            {
-                results.avatar
-                    ? (
+            <div className="student-avatar">
 
-                        <img
-                            src={results.avatar}
-                            alt="Avatar"
-                            width="80"
-                            height="80"
-                        />
+                {
+                    results.avatar
+                        ? (
 
-                    ) : (
+                            <img
+                                src={results.avatar}
+                                alt="Avatar"
+                            />
 
-                        <div>
-                            👤
-                        </div>
-                    )
-            }
+                        ) : (
 
-            </p>
+                            <span>
+                                {results.first_name?.[0]}
+                            </span>
+                        )
+                }
 
-            <p>
+            </div>
 
-                Name:
-                {' '}
+            <div className="student-info">
 
-                {results.first_name}
-                {' '}
-                {results.last_name}
+                <h2>
 
-            </p>
+                    {results.first_name}
+                    {' '}
+                    {results.last_name}
 
-            <p>
-                Email:
-                {' '}
-                {results.email}
-            </p>
+                </h2>
 
-            <hr />
+                <p>
+                    {results.email}
+                </p>
 
-            <h2>
+            </div>
+
+            </div>
+
+            <h2 className="section-title">
                 Statistics
             </h2>
 
-            <p>
+            <div className="stats-grid">
 
-                Completed tests:
-                {' '}
+            <div className="stat-card">
 
-                {results.completed_tests}
+                <span className="stat-label">
+                    Completed Tests
+                </span>
 
-            </p>
+                <span className="stat-value">
+                    {results.completed_tests}
+                </span>
 
-            <p>
+            </div>
 
-                Average score:
-                {' '}
+            <div className="stat-card">
 
-                {results.average_score}
-                %
+                <span className="stat-label">
+                    Average Score
+                </span>
 
-            </p>
+                <span className="stat-value">
+                    {results.average_score}%
+                </span>
 
-            <p>
+            </div>
 
-                Best score:
-                {' '}
+            <div className="stat-card">
 
-                {results.best_score}
-                %
+                <span className="stat-label">
+                    Best Score
+                </span>
 
-            </p>
+                <span className="stat-value">
+                    {results.best_score}%
+                </span>
 
-            <p>
+            </div>
 
-                Worst score:
-                {' '}
+            <div className="stat-card">
 
-                {results.worst_score}
-                %
+                <span className="stat-label">
+                    Worst Score
+                </span>
 
-            </p>
+                <span className="stat-value">
+                    {results.worst_score}%
+                </span>
 
-            <hr />
+            </div>
+
+        </div>
 
             {
 
@@ -175,47 +186,63 @@ function StudentResultsPage() {
 
                     <div
                         key={result.attempt_id}
+                        className="attempt-card"
                     >
 
-                        <p>
-                            Attempt ID:
-                            {' '}
-                            {result.attempt_id}
-                        </p>
-
-                        <p>
-                            Title:
-                            {' '}
+                        <h3 className="attempt-title">
                             {result.title}
-                        </p>
+                        </h3>
 
-                        <p>
-                            Score:
-                            {' '}
-                            {result.score}
-                            /
-                            {result.total}
-                        </p>
+                        <div className="attempt-stats">
 
-                        <p>
-                            Percentage:
-                            {' '}
-                            {result.percentage}
-                            %
-                        </p>
+                            <div className="attempt-stat">
 
-                        <p>
+                                <span className="attempt-stat-label">
+                                    Score
+                                </span>
 
-                            Duration:
-                            {' '}
+                                <span className="attempt-stat-value">
 
-                            {result.duration_minutes}
-                            {' '}
-                            min
+                                    {result.score}
+                                    /
+                                    {result.total}
 
-                        </p>
+                                </span>
+
+                            </div>
+
+                            <div className="attempt-stat">
+
+                                <span className="attempt-stat-label">
+                                    Percentage
+                                </span>
+
+                                <span className="attempt-stat-value">
+
+                                    {result.percentage}%
+
+                                </span>
+
+                            </div>
+
+                            <div className="attempt-stat">
+
+                                <span className="attempt-stat-label">
+                                    Duration
+                                </span>
+
+                                <span className="attempt-stat-value">
+
+                                    {result.duration_minutes} min
+
+                                </span>
+
+                            </div>
+
+                        </div>
 
                         <button
+                            className="btn-primary"
                             type="button"
                             onClick={() =>
                                 navigate(
@@ -225,8 +252,6 @@ function StudentResultsPage() {
                         >
                             Open Result
                         </button>
-
-                        <hr />
 
                     </div>
                 ))

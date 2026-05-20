@@ -10,6 +10,9 @@ import {
     createTest
 } from '../services/testsService';
 
+import ErrorToast
+    from '../components/ErrorToast';
+
 function CreateTestPage() {
 
     const navigate =
@@ -31,6 +34,17 @@ function CreateTestPage() {
     const [error, setError] =
         useState('');
 
+    function showError(message) {
+
+        setError(message);
+
+        setTimeout(() => {
+
+            setError('');
+
+        }, 5000);
+    }
+
     async function handleSubmit(e) {
 
         e.preventDefault();
@@ -40,38 +54,59 @@ function CreateTestPage() {
             setError('');
 
             const response =
-            await createTest({
-                title,
-                description,
-                time_limit: Number(timeLimit)
-            });
-        
-        navigate(
-            `/tests/${response.test_id}/edit`
-        );
+                await createTest({
+                    title,
+                    description,
+                    time_limit: Number(timeLimit)
+                });
+
+            navigate(
+                `/tests/${response.test_id}/edit`
+            );
 
         } catch (err) {
 
-            setError(
+            showError(
                 err.response?.data?.error ||
                 'Failed to create test'
             );
-            
         }
     }
 
     return (
-        <div>
 
-            <h1>Create Test</h1>
+        <div className="editor-page">
 
-            <form onSubmit={handleSubmit}>
+            <ErrorToast
+                message={error}
+                onClose={() =>
+                    setError('')
+                }
+            />
 
-                <div>
+            <div className="editor-header">
+
+                <h1 className="page-title">
+                    Create Test
+                </h1>
+
+            </div>
+
+            <div className="editor-card">
+
+                <h2 className="editor-section-title">
+                    Test Information
+                </h2>
+
+                <form
+                    className="editor-form"
+                    onSubmit={handleSubmit}
+                >
 
                     <input
+                        className="input"
                         type="text"
-                        placeholder="Title"
+                        placeholder="Test title"
                         value={title}
                         onChange={e =>
                             setTitle(
@@ -80,13 +115,8 @@ function CreateTestPage() {
                         }
                     />
 
-                </div>
-
-                <br />
-
-                <div>
-
                     <textarea
+                        className="input"
                         placeholder="Description"
                         value={description}
                         onChange={e =>
@@ -96,13 +126,8 @@ function CreateTestPage() {
                         }
                     />
 
-                </div>
-
-                <br />
-
-                <div>
-
                     <input
+                        className="input"
                         type="number"
                         min="5"
                         max="30"
@@ -114,20 +139,16 @@ function CreateTestPage() {
                         }
                     />
 
-                </div>
+                    <button
+                        className="btn-primary"
+                        type="submit"
+                    >
+                        Create Test
+                    </button>
 
-                <br />
+                </form>
 
-                <button type="submit">
-                    Create Test
-                </button>
-
-            </form>
-
-            {
-                error &&
-                <p>{error}</p>
-            }
+            </div>
 
         </div>
     );

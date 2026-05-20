@@ -1,6 +1,9 @@
+import '../styles/components/error-toast.css';
+
 function ErrorToast({
     message,
-    onClose
+    onClose,
+    type = 'error'
 }) {
 
     if (!message) {
@@ -10,48 +13,31 @@ function ErrorToast({
     return (
 
         <div
-            style={{
-                position: 'fixed',
-                top: '20px',
-                right: '20px',
-                background: '#ff4d4f',
-                color: 'white',
-                padding: '12px 16px',
-                borderRadius: '8px',
-                boxShadow:
-                    '0 4px 12px rgba(0,0,0,0.2)',
-                zIndex: 9999
-            }}
+            className={`
+                error-toast
+                ${
+                    type === 'success'
+                        ? 'success-toast'
+                        : ''
+                }
+            `}
         >
-
-            <div
-                style={{
-                    display: 'flex',
-                    gap: '12px',
-                    alignItems: 'center'
-                }}
-            >
-
-                <span>
+    
+            <div className="error-toast-content">
+    
+                <span className="error-toast-message">
                     {message}
                 </span>
-
-                <button
-                    type="button"
-                    onClick={onClose}
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'white',
-                        cursor: 'pointer',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    X
-                </button>
-
+    
             </div>
-
+    
+            <button
+                className="error-toast-close"
+                onClick={onClose}
+            >
+                ✕
+            </button>
+    
         </div>
     );
 }

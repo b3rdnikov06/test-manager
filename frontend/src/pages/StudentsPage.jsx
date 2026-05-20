@@ -11,6 +11,9 @@ import {
     getStudents
 } from '../services/usersService';
 
+import ErrorToast
+    from '../components/ErrorToast';
+
 function StudentsPage() {
 
     const navigate =
@@ -25,6 +28,17 @@ function StudentsPage() {
     const [error, setError] =
         useState('');
 
+    function showError(message) {
+
+        setError(message);
+
+        setTimeout(() => {
+
+            setError('');
+
+        }, 5000);
+    }
+
     useEffect(() => {
 
         async function fetchStudents() {
@@ -38,7 +52,7 @@ function StudentsPage() {
 
             } catch (err) {
 
-                setError(
+                showError(
                     err.response?.data?.error ||
                     'Failed to load students'
                 );
@@ -54,86 +68,139 @@ function StudentsPage() {
     }, []);
 
     if (loading) {
-        return <p>Loading...</p>;
-    }
 
-    if (error) {
-        return <p>{error}</p>;
+        return (
+            <p>
+                Loading...
+            </p>
+        );
     }
 
     return (
-        <div>
 
-            <h1>
-                Students
-            </h1>
+        <div className="profile-page">
+
+            <ErrorToast
+                message={error}
+                onClose={() =>
+                    setError('')
+                }
+            />
+
+            <div className="page-header">
+
+                <h1 className="page-title">
+                    Students
+                </h1>
+
+                <p className="card-description">
+
+                    Manage students
+                    and view their results
+
+                </p>
+
+            </div>
 
             {
-
                 students.length === 0
-                ? (
+                    ? (
 
-                    <p>
-                        No students yet
-                    </p>
+                        <div className="empty-state">
 
-                ) : (
-                    students.map(student => (
+                            <h2>
+                                No students yet
+                            </h2>
 
-                        <div key={student.id}>
+                            <p>
+                                Students will appear here
+                            </p>
+
+                        </div>
+
+                    ) : (
+
+                        <div className="students-grid">
 
                             {
-                                student.avatar
-                                    ? (
+                                students.map((student, index) => (
 
-                                        <img
-                                            src={student.avatar}
-                                            alt="Avatar"
-                                            width="80"
-                                            height="80"
-                                        />
+                                    <div
+                                        key={student.id}
+                                        className="student-card"
+                                    >
 
-                                    ) : (
+                                        <div className="student-card-top">
 
-                                        <div>
-                                            👤
+                                            <div className="profile-avatar">
+
+                                                {
+                                                    student.avatar
+                                                        ? (
+
+                                                            <img
+                                                                src={student.avatar}
+                                                                alt="Avatar"
+                                                            />
+
+                                                        ) : (
+
+                                                            <>
+                                                                {
+                                                                    student.first_name?.[0]
+                                                                }
+                                                                {
+                                                                    student.last_name?.[0]
+                                                                }
+                                                            </>
+                                                        )
+                                                }
+
+                                            </div>
+
+                                            <div className="student-info">
+
+                                                <h2>
+
+                                                    {index + 1}.
+                                                    {' '}
+
+                                                    {
+                                                        student.first_name
+                                                    }
+                                                    {' '}
+                                                    {
+                                                        student.last_name
+                                                    }
+
+                                                </h2>
+
+                                                <p>
+                                                    {student.email}
+                                                </p>
+
+                                            </div>
+
                                         </div>
-                                    )
+
+                                        <button
+                                            className="btn-primary"
+                                            type="button"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/students/${student.id}`
+                                                )
+                                            }
+                                        >
+                                            View Results
+                                        </button>
+
+                                    </div>
+                                ))
                             }
-
-                            <p>
-
-                                Name:
-                                {' '}
-
-                                {student.first_name}
-                                {' '}
-                                {student.last_name}
-
-                            </p>
-
-                            <p>
-                                Email:
-                                {' '}
-                                {student.email}
-                            </p>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate(
-                                        `/students/${student.id}`
-                                    )
-                                }
-                            >
-                                View Results
-                            </button>
-
-                            <hr />
 
                         </div>
                     )
-                ))
             }
 
         </div>

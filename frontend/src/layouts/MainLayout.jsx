@@ -1,19 +1,21 @@
-import Navbar
-    from '../components/Navbar';
+import Navbar from "../components/Navbar";
 
-function MainLayout({
-    children
-}) {
+import "../styles/layouts/main-layout.css";
+
+function MainLayout({ children }) {
 
     return (
-        <div>
 
+        <div className="main-layout">
+    
             <Navbar />
-
-            <hr />
-
-            {children}
-
+    
+            <main className="main-content">
+    
+                {children}
+    
+            </main>
+    
         </div>
     );
 }

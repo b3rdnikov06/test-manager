@@ -10,6 +10,9 @@ import {
     Link
 } from 'react-router-dom';
 
+import ErrorToast
+    from '../components/ErrorToast';
+
 function ForgotPasswordPage() {
 
     const [email, setEmail] =
@@ -113,120 +116,170 @@ function ForgotPasswordPage() {
 
     return (
 
-        <div>
+        <div className="auth-page">
+    
+            <div className="auth-container">
+    
+                <div className="auth-layout">
+    
+                    <div className="auth-banner">
+    
+                        <h1 className="banner-title">
+                            Password Recovery
+                        </h1>
+    
+                        <p className="banner-subtitle">
+                            Restore access to your account
+                            quickly and securely.
+                        </p>
+    
+                        <div className="banner-features">
+    
+                            <div className="feature-item">
+                                Secure password reset
+                            </div>
+    
+                            <div className="feature-item">
+                                Fast recovery process
+                            </div>
+    
+                            <div className="feature-item">
+                                Modern user experience
+                            </div>
+    
+                        </div>
+    
+                    </div>
+    
+                    <div className="auth-card">
 
-            <h1>
-                Forgot Password
-            </h1>
+                    <h1 className="auth-title">
+                        Forgot Password
+                    </h1>
 
-            <div>
+                    <p className="auth-subtitle">
+                        Enter your email address
+                    </p>
 
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={e =>
-                        setEmail(
-                            e.target.value
-                        )
-                    }
-                />
+                    <div>
+
+                    <input
+                        className="input"
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={e =>
+                            setEmail(
+                                e.target.value
+                            )
+                        }
+                    />
+
+                </div>
+
+                {
+                    !showResetForm && (
+
+                        <button
+                            className="btn-primary auth-btn"
+                            type="button"
+                            onClick={handleSendCode}
+                        >
+                            Send Code
+                        </button>
+
+                    )
+                }
+
+                {
+                    showResetForm && (
+
+                        <form
+                            onSubmit={
+                                handleResetPassword
+                            }
+                        >
+
+                            <input
+                                className="input"
+                                type="text"
+                                placeholder="Code"
+                                value={code}
+                                onChange={e =>
+                                    setCode(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                            <input
+                                className="input"
+                                type="password"
+                                placeholder="New password"
+                                value={newPassword}
+                                onChange={e =>
+                                    setNewPassword(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                            <input
+                                className="input"
+                                type="password"
+                                placeholder="Confirm password"
+                                value={confirmPassword}
+                                onChange={e =>
+                                    setConfirmPassword(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                            <button
+                                className="btn-primary auth-btn"
+                                type="submit"
+                            >
+                                Reset Password
+                            </button>
+
+                        </form>
+                    )
+                }
+
+                <Link
+                    className="auth-link"
+                    to="/login"
+                >
+                    Back to Login
+                </Link>
+
+                <Link
+                    className="forgot-password-link"
+                    to="/register"
+                >
+                    Create account
+                </Link>
+
+                </div>
+
+                </div>
+
+                {
+                    message && (
+                        <ErrorToast
+                            message={message}
+                            onClose={() =>
+                                setMessage('')
+                            }
+                        />
+                    )
+                }
 
             </div>
 
-            <br />
-
-            <button
-                type="button"
-                onClick={handleSendCode}
-            >
-                Send Code
-            </button>
-
-            <br />
-            <br />
-
-            {
-                showResetForm && (
-
-                    <form
-                        onSubmit={
-                            handleResetPassword
-                        }
-                    >
-
-                        <input
-                            type="text"
-                            placeholder="Code"
-                            value={code}
-                            onChange={e =>
-                                setCode(
-                                    e.target.value
-                                )
-                            }
-                        />
-
-                        <br />
-                        <br />
-
-                        <input
-                            type="password"
-                            placeholder="New password"
-                            value={newPassword}
-                            onChange={e =>
-                                setNewPassword(
-                                    e.target.value
-                                )
-                            }
-                        />
-
-                        <br />
-                        <br />
-
-                        <input
-                            type="password"
-                            placeholder="Confirm password"
-                            value={confirmPassword}
-                            onChange={e =>
-                                setConfirmPassword(
-                                    e.target.value
-                                )
-                            }
-                        />
-
-                        <br />
-                        <br />
-
-                        <button type="submit">
-                            Reset Password
-                        </button>
-
-                    </form>
-                )
-            }
-
-            {
-                message && (
-                    <p>
-                        {message}
-                    </p>
-                )
-            }
-
-            <br />
-
-            <Link to="/login">
-                Login
-            </Link>
-
-            <br />
-            <br />
-
-            <Link to="/register">
-                Register
-            </Link>
-
         </div>
+
     );
 }
 

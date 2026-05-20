@@ -117,7 +117,9 @@ function AppRouter() {
                         <ProtectedRoute
                             roles={['teacher']}
                         >
-                            <TestResultsPage />
+                            <MainLayout>
+                                <TestResultsPage />
+                            </MainLayout>
                         </ProtectedRoute>
                     }
                 />

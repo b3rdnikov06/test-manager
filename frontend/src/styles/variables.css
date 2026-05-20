@@ -1,0 +1,29 @@
+:root {
+
+    --bg-main: #f5f7fb;
+
+    --bg-card: #ffffff;
+
+    --primary: #4f7cff;
+
+    --primary-hover: #3f6ef5;
+
+    --text-main: #1f2937;
+
+    --text-secondary: #6b7280;
+
+    --border-color: #e5e7eb;
+
+    --success: #22c55e;
+
+    --danger: #ef4444;
+
+    --warning: #f59e0b;
+
+    --shadow:
+        0 4px 12px rgba(0,0,0,0.05);
+
+    --radius: 14px;
+
+    --transition: 0.2s ease;
+}

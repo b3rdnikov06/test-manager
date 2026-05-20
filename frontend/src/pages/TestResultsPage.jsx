@@ -12,7 +12,8 @@ import {
     getTestResults
 } from '../services/resultsService';
 
-import ErrorToast from '../components/ErrorToast';
+import ErrorToast
+    from '../components/ErrorToast';
 
 function TestResultsPage() {
 
@@ -30,15 +31,15 @@ function TestResultsPage() {
 
     const [error, setError] =
         useState('');
-    
+
     function showError(message) {
 
         setError(message);
-    
+
         setTimeout(() => {
-    
+
             setError('');
-    
+
         }, 10000);
     }
 
@@ -71,11 +72,17 @@ function TestResultsPage() {
     }, [id]);
 
     if (loading) {
-        return <p>Loading results...</p>;
+
+        return (
+            <p>
+                Loading results...
+            </p>
+        );
     }
 
     return (
-        <div>
+
+        <div className="results-page">
 
             <ErrorToast
                 message={error}
@@ -84,68 +91,125 @@ function TestResultsPage() {
                 }
             />
 
-            <h1>
+            <h1 className="page-title">
                 Test Results
             </h1>
 
-            <h2>
-                {data.title}
-            </h2>
+            <div className="student-profile-card">
+
+                <div className="student-info">
+
+                    <h2>
+                        {data.title}
+                    </h2>
+
+                    <p>
+                        Published test analytics
+                    </p>
+
+                </div>
+
+            </div>
 
             {
                 data.attempts.length === 0
                     ? (
-                        <p>
+
+                        <div className="empty-state">
                             No attempts yet
-                        </p>
+                        </div>
+
                     )
                     : (
+
                         data.attempts.map(attempt => (
 
                             <div
                                 key={
                                     attempt.attempt_id
                                 }
+                                className="attempt-card"
                             >
 
-                                <p>
-                                    Attempt ID:
-                                    {' '}
-                                    {
-                                        attempt.attempt_id
-                                    }
-                                </p>
+                                <div className="student-result-header">
 
-                                <p>
-                                    User ID:
-                                    {' '}
-                                    {
-                                        attempt.user_id
-                                    }
-                                </p>
+                                    <div className="student-avatar">
 
-                                <p>
-                                    Score:
-                                    {' '}
-                                    {
-                                        attempt.score
-                                    }
-                                    /
-                                    {
-                                        attempt.total
-                                    }
-                                </p>
+                                        {
+                                            attempt.avatar
+                                                ? (
 
-                                <p>
-                                    Percentage:
-                                    {' '}
-                                    {
-                                        attempt.percentage
-                                    }
-                                    %
-                                </p>
+                                                    <img
+                                                        src={attempt.avatar}
+                                                        alt="Avatar"
+                                                    />
+
+                                                ) : (
+
+                                                    <span>
+                                                        {
+                                                            attempt.first_name?.[0]
+                                                        }
+                                                    </span>
+                                                )
+                                        }
+
+                                    </div>
+
+                                    <div className="student-info">
+
+                                        <h3>
+
+                                            {attempt.first_name}
+                                            {' '}
+                                            {attempt.last_name}
+
+                                        </h3>
+
+                                        <p>
+                                            Student attempt
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div className="attempt-stats">
+
+                                    <div className="attempt-stat">
+
+                                        <span className="attempt-stat-label">
+                                            Score
+                                        </span>
+
+                                        <span className="attempt-stat-value">
+
+                                            {attempt.score}
+                                            /
+                                            {attempt.total}
+
+                                        </span>
+
+                                    </div>
+
+                                    <div className="attempt-stat">
+
+                                        <span className="attempt-stat-label">
+                                            Percentage
+                                        </span>
+
+                                        <span className="attempt-stat-value">
+
+                                            {attempt.percentage}%
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
 
                                 <button
+                                    className="btn-primary"
                                     type="button"
                                     onClick={() =>
                                         navigate(
@@ -155,8 +219,6 @@ function TestResultsPage() {
                                 >
                                     Open Result
                                 </button>
-
-                                <hr />
 
                             </div>
                         ))

@@ -4,21 +4,17 @@ import {
 } from 'react';
 
 import {
-    getTeacherTests
-} from '../services/testsService';
-
-import { Link }
-    from 'react-router-dom';
-
-import {
+    getTeacherTests,
     deleteTest
 } from '../services/testsService';
 
 import {
+    Link,
     useNavigate
 } from 'react-router-dom';
 
-import ErrorToast from '../components/ErrorToast';
+import ErrorToast
+    from '../components/ErrorToast';
 
 function TeacherTestsPage() {
 
@@ -33,15 +29,15 @@ function TeacherTestsPage() {
 
     const navigate =
         useNavigate();
-    
+
     function showError(message) {
 
         setError(message);
-    
+
         setTimeout(() => {
-    
+
             setError('');
-    
+
         }, 10000);
     }
 
@@ -76,33 +72,38 @@ function TeacherTestsPage() {
     async function handleDeleteTest(
         testId
     ) {
-    
+
         try {
-    
+
             await deleteTest(testId);
-    
+
             setTests(prev =>
                 prev.filter(
                     test => test.id !== testId
                 )
             );
-    
+
         } catch (err) {
-    
+
             showError(
                 err.response?.data?.error ||
                 'Failed to delete test'
             );
-
         }
     }
 
     if (loading) {
-        return <p>Loading tests...</p>;
+
+        return (
+            <p>
+                Loading tests...
+            </p>
+        );
     }
 
     return (
-        <div>
+
+        <div className="results-page">
 
             <ErrorToast
                 message={error}
@@ -111,92 +112,137 @@ function TeacherTestsPage() {
                 }
             />
 
-            <h1>Teacher Tests</h1>
-
+            <h1 className="page-title">
+                Teacher Tests
+            </h1>
 
             {
                 tests.length === 0
                     ? (
-                        <p>No tests created</p>
+
+                        <div className="empty-state">
+                            No tests created
+                        </div>
+
                     )
                     : (
-                        tests.map(test => (
 
-                            <div key={test.id}>
+                        tests.map((test, index) => (
 
-                                <h3>
+                            <div
+                                key={test.id}
+                                className="test-card"
+                            >
+
+                                <div className="question-header">
+
+                                    <div>
+
+                                    <h2 className="attempt-title">
+
+                                    {index + 1}.
+                                    {' '}
+
                                     {test.title}
-                                </h3>
 
-                                <p>
-                                    {test.description}
-                                </p>
+                                    </h2>
 
-                                <p>
-                                    Published:
-                                    {' '}
-                                    {test.is_published
-                                        ? 'Yes'
-                                        : 'No'}
-                                </p>
+                                        <p className="card-description">
+                                            {test.description}
+                                        </p>
 
-                                <p>
-                                    Attempts:
-                                    {' '}
-                                    {test.attempts_count}
-                                </p>
+                                    </div>
 
-                                <Link to={`/tests/${test.id}/edit`}>
-                                    Edit
-                                </Link>
-
-                                <p>
-                                {
-                                    Number(test.attempts_count) === 0 && (
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleDeleteTest(test.id)
+                                    <div
+                                        className={`
+                                            question-type
+                                            ${
+                                                Boolean(test.is_published)
+                                                    ? ''
+                                                    : 'unpublished-badge'
                                             }
-                                        >
-                                            Delete Test
-                                        </button>
-                                    )
-                                }
-                                </p>
+                                        `}
+                                    >
 
-                                {
-                                    Boolean(test.is_published) &&
-                                    Number(test.attempts_count) > 0 ? (
+                                        {
+                                            Boolean(test.is_published)
+                                                ? 'Published'
+                                                : 'Draft'
+                                        }
 
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                navigate(
-                                                    `/results/tests/${test.id}`
-                                                )
-                                            }
-                                        >
-                                            View Results
-                                        </button>
+                                    </div>
 
-                                    ) : null
-                                    
-                                }
+                                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            `/tests/${test.id}/view`
+                                <div className="test-actions">
+
+                                    <div className="attempt-badge">
+
+                                        <span className="attempt-badge-label">
+                                            Attempts
+                                        </span>
+
+                                        <span className="attempt-badge-value">
+
+                                            {test.attempts_count}
+
+                                        </span>
+
+                                    </div>
+
+                                    <Link
+                                        className="btn-primary"
+                                        to={`/tests/${test.id}/edit`}
+                                    >
+                                        Edit
+                                    </Link>
+
+                                    <button
+                                        className="btn-primary"
+                                        type="button"
+                                        onClick={() =>
+                                            navigate(
+                                                `/tests/${test.id}/view`
+                                            )
+                                        }
+                                    >
+                                        View Test
+                                    </button>
+
+                                    {
+                                        Boolean(test.is_published) &&
+                                        Number(test.attempts_count) > 0 && (
+
+                                            <button
+                                                className="btn-primary"
+                                                type="button"
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/results/tests/${test.id}`
+                                                    )
+                                                }
+                                            >
+                                                View Results
+                                            </button>
                                         )
                                     }
-                                >
-                                    View Test
-                                </button>
 
-                                <hr />
+                                    {
+                                        Number(test.attempts_count) === 0 && (
+
+                                            <button
+                                                className="btn-danger"
+                                                type="button"
+                                                onClick={() =>
+                                                    handleDeleteTest(test.id)
+                                                }
+                                            >
+                                                Delete
+                                            </button>
+                                        )
+                                    }
+
+                                </div>
 
                             </div>
                         ))

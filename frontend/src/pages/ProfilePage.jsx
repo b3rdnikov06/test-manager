@@ -11,6 +11,9 @@ import {
     changePassword
 } from '../services/usersService';
 
+import ErrorToast
+    from '../components/ErrorToast';
+
 function ProfilePage() {
 
     const {
@@ -132,34 +135,75 @@ function ProfilePage() {
 
     return (
 
-        <div>
+        <div className="profile-page">
 
-            <h1>
+            <h1 className="page-title">
                 My Profile
             </h1>
 
-            {
-                !showProfileForm && (
+            <div className="profile-card">
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setShowProfileForm(true)
-                        }
+                <div className="profile-avatar">
+
+                    {
+                        user?.avatar
+                            ? (
+
+                                <img
+                                    src={user.avatar}
+                                    alt="Avatar"
+                                />
+
+                            ) : (
+
+                                <span>
+                                    {user?.first_name?.[0]}
+                                </span>
+                            )
+                    }
+
+                </div>
+
+                <div className="profile-info">
+
+                    <h2>
+
+                        {user?.first_name}
+                        {' '}
+                        {user?.last_name}
+
+                    </h2>
+
+                    <p>
+                        {user?.email}
+                    </p>
+
+                    <span className="profile-role">
+
+                        {user?.role}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div className="profile-settings-grid">
+
+                <div className="settings-card">
+
+                <h2 className="section-title">
+                    Edit Profile
+                </h2>
+
+                    <form
+                        onSubmit={handleSubmit}
                     >
-                        Edit Profile
-                    </button>
-                )
-            }
-
-            {
-                showProfileForm && (
-
-                    <form onSubmit={handleSubmit}>
 
                         <div>
 
                             <input
+                                className="input"
                                 type="text"
                                 placeholder="First name"
                                 value={firstName}
@@ -172,11 +216,10 @@ function ProfilePage() {
 
                         </div>
 
-                        <br />
-
                         <div>
 
                             <input
+                                className="input"
                                 type="text"
                                 placeholder="Last name"
                                 value={lastName}
@@ -189,11 +232,10 @@ function ProfilePage() {
 
                         </div>
 
-                        <br />
-
                         <div>
 
                             <input
+                                className="input"
                                 type="text"
                                 placeholder="Avatar URL"
                                 value={avatar}
@@ -206,40 +248,31 @@ function ProfilePage() {
 
                         </div>
 
-                        <br />
-
-                        <button type="submit">
-                            Save Changes
+                        <button
+                            className="btn-primary"
+                            type="submit"
+                        >
+                            Edit Profile
                         </button>
 
-                    </form>
-                )
-            }
+                     </form>
 
-            <hr />
+                </div>
 
-            {
-                !showPasswordForm && (
+            <div className="settings-card">
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setShowPasswordForm(true)
-                        }
-                    >
-                        Change Password
-                    </button>
-                )
-            }
+            <h2 className="section-title">
+                Change Password
+            </h2>
 
-            {
-                showPasswordForm && (
-
-                    <form onSubmit={handlePasswordChange}>
+            <form
+                onSubmit={handlePasswordChange}
+            >
 
                         <div>
 
                             <input
+                                className="input"
                                 type="password"
                                 placeholder="Current password"
                                 value={currentPassword}
@@ -252,11 +285,10 @@ function ProfilePage() {
 
                         </div>
 
-                        <br />
-
                         <div>
 
                             <input
+                                className="input"
                                 type="password"
                                 placeholder="New password"
                                 value={newPassword}
@@ -269,11 +301,10 @@ function ProfilePage() {
 
                         </div>
 
-                        <br />
-
                         <div>
 
                             <input
+                                className="input"
                                 type="password"
                                 placeholder="Confirm password"
                                 value={confirmPassword}
@@ -286,90 +317,31 @@ function ProfilePage() {
 
                         </div>
 
-                        <br />
-
-                        <button type="submit">
+                        <button
+                            className="btn-primary"
+                            type="submit"
+                        >
                             Change Password
                         </button>
 
                     </form>
-                )
-            }
-            
-            <br />
-            <br />
 
-            <br />
+                </div>
 
-            {
-                user?.avatar
-                    ? (
+            </div>          
 
-                        <img
-                            src={user.avatar}
-                            alt="Avatar"
-                            width="120"
-                            height="120"
-                        />
+            <ErrorToast
+                message={error || message}
+                onClose={() => {
 
-                    ) : (
+                    setError('');
+                    setMessage('');
 
-                        <div>
-
-                            👤
-
-                        </div>
-                    )
-            }
-
-            <br />
-
-            <p>
-
-                Full name:
-                {' '}
-
-                {user?.first_name}
-                {' '}
-                {user?.last_name}
-
-            </p>
-
-            <p>
-
-                Email:
-                {' '}
-
-                {user?.email}
-
-            </p>
-
-            <p>
-
-                Role:
-                {' '}
-
-                {user?.role}
-
-            </p>
-
-            {
-                message && (
-                    <p>
-                        {message}
-                    </p>
-                )
-            }
-
-            {
-                error && (
-                    <p>
-                        {error}
-                    </p>
-                )
-            }
+                }}
+            />
 
         </div>
+
     );
 }
 
