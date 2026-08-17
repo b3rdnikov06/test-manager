@@ -81,23 +81,35 @@ jobs:
 
       - name: Start backend
         working-directory: backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: root
+          DB_PASSWORD: 17031703
+          DB_NAME: testing_system
         run: |
           node app.js > backend.log 2>&1 &
           echo $! > backend.pid
 
       - name: Wait for backend
+        working-directory: backend
         run: |
           for i in {1..30}; do
-            if curl -fsS http://localhost:3000/ > /dev/null; then
-              echo "Backend is ready"
+            if grep -q "Connected to database" backend.log; then
+              echo "Backend is connected to database"
               exit 0
+            fi
+
+            if grep -q "DB connection error" backend.log; then
+              echo "Database connection failed"
+              cat backend.log
+              exit 1
             fi
 
             sleep 1
           done
 
-          echo "Backend did not start"
-          cat backend/backend.log
+          echo "Backend did not connect to database"
+          cat backend.log
           exit 1
 
       - name: Setup Java
