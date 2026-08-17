@@ -1,3 +1,8 @@
+INSERT INTO tests
+    (id, title, description, author_id, time_limit, attempts_limit, is_published)
+VALUES
+    (1, 'Test Results', 'Test Results', 1, 5, 1, TRUE);
+
 INSERT INTO users
     (id, first_name, last_name, email, password_hash, role)
 VALUES
