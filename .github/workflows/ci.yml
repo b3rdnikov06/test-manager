@@ -30,3 +30,83 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+  api-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: 17031703
+          MYSQL_DATABASE: testing_system
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p17031703"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Initialize database
+        run: |
+          mysql \
+            -h 127.0.0.1 \
+            -P 3306 \
+            -u root \
+            -p17031703 \
+            testing_system < database/schema.sql
+
+          mysql \
+            -h 127.0.0.1 \
+            -P 3306 \
+            -u root \
+            -p17031703 \
+            testing_system < database/ci-seed.sql
+
+      - name: Start backend
+        working-directory: backend
+        run: |
+          node app.js > backend.log 2>&1 &
+          echo $! > backend.pid
+
+      - name: Wait for backend
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000/ > /dev/null; then
+              echo "Backend is ready"
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          echo "Backend did not start"
+          cat backend/backend.log
+          exit 1
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Run API tests
+        working-directory: qa/AutoTest
+        run: mvn -Dtest=TestAPI.TestsAPI test
